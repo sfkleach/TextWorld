@@ -1,0 +1,23 @@
+JLine is a Java library for handling console input.  It is similar in
+functionality to BSD editline and GNU  readline.  People familiar with
+the readline/editline capabilities for modern shells (such as bash and
+tcsh) will find most of the command editing features of JLine to  be
+familiar.
+
+JLine is distributed under the GNU Library General Public License
+(LGPL), meaning that you are free to redistribute, modify, or sell,
+provided that any changes you make are made publicly available. 
+However, you are able to release software that utilizes JLine without
+releasing the source code, provided that you do not make any changes to
+the source code to JLine itself.  For more information on the LGPL, see
+ http://www.gnu.org/copyleft/lgpl.html.
+
+JLine is hosted on SourceForge, and is located at  http://jline.sf.net. 
+The latest release can be downloaded from
+  http://sourceforge.net/project/showfiles.php?group_id=64033.  
+API documentation can be found in the javadoc directory.
+
+For information on obtaining the software under another  license,
+contact the copyright holder via mailto:mwp1@cornell.edu.
+
+For more information see http://jline.sourceforge.net/.

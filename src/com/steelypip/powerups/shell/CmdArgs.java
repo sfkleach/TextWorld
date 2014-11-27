@@ -172,7 +172,7 @@ public abstract class CmdArgs implements PeekableRepeater< String > {
 		}
 	}
 	
-	interface FileArgProcessor {
+	public interface FileArgProcessor {
 		void processFile( File file );
 	}
 	
