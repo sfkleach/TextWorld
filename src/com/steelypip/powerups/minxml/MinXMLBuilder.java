@@ -19,6 +19,9 @@
 package com.steelypip.powerups.minxml;
 
 import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.Nullable;
+
+import com.steelypip.powerups.alert.Alert;
 
 /**
  * This interface linearises the construction of a MinXML
@@ -108,6 +111,15 @@ public interface MinXMLBuilder {
 		this.endTag( name );
 	}
 	
+	default void addBuilderElement( @NonNull MinXMLBuilder builder ) {
+		@NonNull MinXML new_tree = builder.build(); 
+		try {
+			this.addElement( new_tree );
+		} catch ( UnsupportedOperationException e ) {
+			this.mergeElement( new_tree );
+		}
+	}
+	
 	/** 
 	 * This optional method adds an existing element E into the current
 	 * tree build so that the final tree shares store with E.
@@ -117,10 +129,45 @@ public interface MinXMLBuilder {
 	}
 	
 	/**
-	 * This method returns the constructed tree. An implementation may
-	 * elect to make the builder reusable again.
+	 * This method returns the first completed tree from the queue of
+	 * completed trees, removing it from the queue. If there are no
+	 * trees in the queue the default value is returned.
+	 * An implementation must make the builder reusable again.
 	 *  
 	 * @return the constructed tree
 	 */
-	MinXML build(); 
+	@Nullable MinXML build( final MinXML default_value );
+	
+	/**
+	 * This method returns the first completed tree from the 
+	 * queue of completed trees, removing it from the queue.
+	 * If there are no trees in the queue an exception will be thrown.
+	 *  
+	 * @return the constructed tree
+	 */
+	default @NonNull MinXML build() {
+		final MinXML mnx = this.build( null );
+		if ( mnx == null ) {
+			throw new Alert( "Trying to build element from no tags" );
+		} else {
+			return mnx;
+		}
+	}
+	
+	/**
+	 * This method forces the completion of however much it is 
+	 * possible to complete, builds the tree, and returns it.
+	 * The implementation of the partially-built tree may be 
+	 * different from that of a full build, giving the implementor
+	 * the scope to avoid an expensive compaction.
+	 * 
+	 * If there is nothing to be completed, then the default 
+	 * value is returned. 
+	 * 
+	 * Note that this may be called repeatedly, popping off
+	 * completions of the same level.
+	 */
+	@Nullable MinXML partBuild( final MinXML default_value );
+	
+	
 }
