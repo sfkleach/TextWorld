@@ -19,8 +19,10 @@
 package com.steelypip.powerups.minxml;
 
 import java.util.LinkedList;
+import java.util.NoSuchElementException;
 
 import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.Nullable;
 
 import com.steelypip.powerups.alert.Alert;
 
@@ -67,19 +69,32 @@ public class FlexiMinXMLBuilder implements MinXMLBuilder {
 	public void endTag( String name ) {
 		this.bindName( name );
 		this.current_element.trimToSize();
-		final FlexiMinXML b2 = element_stack.removeLast();
-		b2.add( this.current_element );
-		this.current_element = b2;
+		try {
+			final FlexiMinXML b2 = element_stack.removeLast();
+			b2.add( this.current_element );
+			this.current_element = b2;
+		} catch ( NoSuchElementException e ) {
+			throw new Alert( "More end tags than start tags", e );
+		}
 	}
 
 	@Override
-	public MinXML build() {
+	public MinXML partBuild( final MinXML default_value ) {
 		if ( this.current_element.isEmpty() ) {
-			return null;
+			return default_value;
 		} else {
-			MinXML result = this.current_element.get( this.current_element.size() - 1 );
+			MinXML result = this.current_element.remove( 0 );
 			this.current_element.clear();
 			return result;
+		}
+	}
+
+	@Override
+	public @Nullable MinXML build( MinXML default_value ) {
+		if ( this.element_stack.isEmpty() ) {
+			return this.partBuild( default_value ); 
+		} else {
+			throw new Alert( "Trying to build tree with unmatched start tags" );
 		}
 	}
 

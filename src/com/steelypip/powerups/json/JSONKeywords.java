@@ -110,6 +110,13 @@ public class JSONKeywords {
 
 	/**
 	 * A constant that denotes the value given to the element name   
+	 * for explicit tuples. e.g. 〔〕 turns
+	 * into {@code <TUPLE/>}
+	 */	
+	public final String TUPLE;
+
+	/**
+	 * A constant that denotes the value given to the element name   
 	 * for objects. e.g. {} turns
 	 * into {@code <OBJECT/>}
 	 */	
@@ -150,6 +157,7 @@ public class JSONKeywords {
 	 */	
 	public final String ID_NAME;
 	
+	
 	private static String pick( Map< String, String > keys, String k, String otherwise ) {
 		if ( keys == null ) return otherwise;
 		final String first_choice = keys.get( k );
@@ -174,6 +182,7 @@ public class JSONKeywords {
 		 BOOLEAN = pick( keys, "BOOLEAN", "boolean" );
 		 NULLEAN = pick( keys, "NULLEAN", "null" );
 		 ARRAY = pick( keys, "ARRAY", "array" );
+		 TUPLE = pick( keys, "TUPLE", "tuple" );
 		 OBJECT = pick( keys, "OBJECT", "object" );
 		 NULLEAN_NULL = pick( keys, "NULLEAN_NULL", "null" );
 		 BOOLEAN_TRUE = pick( keys, "BOOLEAN_TRUE", "true" );
@@ -183,4 +192,7 @@ public class JSONKeywords {
 	}
 	
 	public static final JSONKeywords KEYS = new JSONKeywords( null );
+
+
+
 }

@@ -311,7 +311,7 @@ public class MinXMLParser implements Iterable< MinXML > {
 		if ( this.level != 0 ) {
 			throw new Alert( "Unexpected end of input" );
 		}
-		return parent.build();
+		return parent.build( null );
 	}
 	
 	/**

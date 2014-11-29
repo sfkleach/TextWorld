@@ -48,6 +48,7 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 	private static final char FIELD_ATTRIBUTE_SUFFIX = ':';
 
 	protected JSONKeywords json_keys = JSONKeywords.KEYS;
+	protected AbsSurfaceSyntax surface_syntax;
 	private final CharRepeater cucharin;
 	private MinXMLBuilder parent = null;
 	
@@ -91,6 +92,7 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 		this.parent = parent;
 		this.cucharin = rep;
 		this.enableExtensions( extensions );
+		this.surface_syntax = SurfaceSyntax.newSurfaceSyntax( this.json_keys, this.TUPLE_EXTENSION );
 	}
 
 	public MinXSONParser( Reader rep, MinXMLBuilder parent, char... extensions ) {
@@ -317,7 +319,7 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 		for (;;) {
 			this.eatWhiteSpace();
 			char c = peekChar();
-			if ( c == '/' || c == '>' || c == '[' || c == '{'  ) break;
+			if ( c == '/' || c == '>' || this.surface_syntax.isOpenArrayChar( c ) || c == '{'  ) break;
 			final String key = this.readName();
 			
 			this.eatWhiteSpace();
@@ -372,7 +374,7 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 					break;
 				}
 				throw new Alert( "Missing separator before '<'" ).culprit( "At character", ch );
-			} else if ( ch == ']' || ch == '}' || ch == ')' ) {
+			} else if ( this.surface_syntax.isCloseArrayChar( ch ) || ch == '}' || ch == ')' ) {
 				break;
 			} else {
 				throw new Alert( "Unexpected character whilst looking for separator/terminator" ).culprit( "Character", ch );
@@ -421,8 +423,8 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 	}
 
 	
-	static boolean charEndsAttributes( final char c ) {
-		return c == '/' || c == '>' || c == '[' || c == '{' || c == '(';
+	private boolean charEndsAttributes( final char c ) {
+		return c == '/' || c == '>' || this.surface_syntax.isOpenArrayChar( c ) || c == '{' || c == '(';
 	}
 
 	private void readExtraAttributes( final String initial_key ) {
@@ -472,11 +474,17 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 		this.readExtraAttributes( name );
 		this.eatWhiteSpace();
 		final char nch = nextChar();
-		if ( ( nch == '[' ) || ( nch == '{' ) ) {
-			final String tag = nch == '[' ? json_keys.ARRAY : json_keys.OBJECT;
+		if ( this.surface_syntax.isOpenArrayChar( nch ) ) {
+			final String tag = this.surface_syntax.tagOfOpenArrayChar( nch );
 			this.startTagOpen( tag );
 			this.startTagClose( tag );
-			this.pushTag( tag, nch == '[' ? ']' : '}', nch == '[' ? Context.InEmbeddedArray : Context.InEmbeddedObject );
+			this.pushTag( tag, this.surface_syntax.closingArrayChar( nch ), Context.InEmbeddedArray );
+			return;
+		} else if ( nch == '{' ) {
+			final String tag = json_keys.OBJECT;
+			this.startTagOpen( tag );
+			this.startTagClose( tag );
+			this.pushTag( tag, '}', Context.InEmbeddedObject );
 			return;
 		} else if ( nch == '(' ) {
 			this.pushTag( "()", ')', Context.InEmbeddedParentheses );
@@ -502,9 +510,9 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 		} else if ( nch == '>' ) {
 			//	It was a start tag.
 			this.pushTag( name, '\0', Context.InElement );
-		} else if ( this.EMBEDDED_EXTENSION && nch == '[' ) {
+		} else if ( this.EMBEDDED_EXTENSION && this.surface_syntax.isOpenArrayChar( nch ) ) {
 			//	It is a standalone tag with embedded children.
-			this.pushTag( name, ']', Context.InEmbeddedArray );
+			this.pushTag( name, this.surface_syntax.closingArrayChar( nch ), Context.InEmbeddedArray );
 		} else if ( this.EMBEDDED_EXTENSION && nch == '{' ) {
 			//	It is a standalone tag with embedded pairs.
 			this.pushTag( name, '}', Context.InEmbeddedObject );
@@ -518,12 +526,15 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 		final String name = this.readName();
 		this.eatWhiteSpace();
 		if ( this.EMBEDDED_EXTENSION ) {
+			final char nch = this.peekChar( '\0' );
 			if ( this.tryReadChar( '=' ) ) {
 				readNamelessStartTag( name );
-			} else if ( name.isEmpty() && this.tryReadChar( '[' ) ) {
-				this.startTagOpen( json_keys.ARRAY );
-				this.startTagClose( json_keys.ARRAY );
-				this.pushTag( json_keys.ARRAY, ']', Context.InEmbeddedArray );
+			} else if ( name.isEmpty() && this.surface_syntax.isOpenArrayChar( nch ) ) {
+				this.discardChar();
+				final String tag = this.surface_syntax.tagOfOpenArrayChar( nch );
+				this.startTagOpen( tag );
+				this.startTagClose( tag );
+				this.pushTag( tag, this.surface_syntax.closingArrayChar( nch ), Context.InEmbeddedArray );
 			} else if ( name.isEmpty() && this.tryReadChar( '{' ) ) {
 				this.startTagOpen( json_keys.OBJECT );
 				this.startTagClose( json_keys.OBJECT );
@@ -725,11 +736,12 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 		return sofar.toString();
 	}	
 	
-	private void readArray() {
+	private void readArray( final char ch ) {
 		this.discardChar();
-		this.startTagOpen( json_keys.ARRAY );
-		this.startTagClose( json_keys.ARRAY );
-		this.pushTag( json_keys.ARRAY, ']', Context.InArray );
+		final String tag = this.surface_syntax.tagOfOpenArrayChar( ch );
+		this.startTagOpen( tag );
+		this.startTagClose( tag );
+		this.pushTag( tag, this.surface_syntax.closingArrayChar( ch ), Context.InArray );
 	}
 	
 	private void readObject() {
@@ -758,11 +770,11 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 			this.readJSONString();
 		} else if ( isIdentifierStart( ch ) ) {
 			this.readIdentifier();
-		} else if ( ch == '[' ) {
-			this.readArray();
+		} else if ( this.surface_syntax.isOpenArrayChar( ch ) ) {
+			this.readArray( ch );
 		} else if ( ch == '{' ) {
 			this.readObject();
-		} else if ( ch == '}' || ch == ']' ) {
+		} else if ( ch == '}' || this.surface_syntax.isCloseArrayChar( ch ) ) {
 			this.discardChar();
 			final boolean was_in_element = this.isInEmbeddedContainer();
 			if ( was_in_element ) {
@@ -776,8 +788,8 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 			}
 		} else if ( ch == ')'  ) {
 			final boolean was_in_element = this.isInParentheses();
+			this.discardChar();
 			if ( was_in_element ) {
-				this.discardChar();
 				this.eatWhiteSpace();
 				this.mustReadChar( '/' );
 				this.mustReadChar( '>' );
@@ -805,7 +817,7 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 		if ( ! this.isAtTopLevel() ) {
 			throw new Alert( "Unexpected end of input" );
 		}
-		return parent.build();
+		return parent.build( null );
 	}
 
 	/**
