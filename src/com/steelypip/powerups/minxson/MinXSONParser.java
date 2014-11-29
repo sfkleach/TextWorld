@@ -777,7 +777,7 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 			if ( this.surface_syntax.isCloseParenthesis( ch ) ) {
 				MinXML parenthetical_expression = this.parent.partBuild();
 				if ( parenthetical_expression.size() == 1 ) {
-					parenthetical_expression = parenthetical_expression.get( 0 );
+					parenthetical_expression = parenthetical_expression.getFirst();
 				} else if ( ! this.TUPLE_EXTENSION ) {
 					throw new Alert( "Parentheses used as tuple without tuple extension enabled" );
 				}
