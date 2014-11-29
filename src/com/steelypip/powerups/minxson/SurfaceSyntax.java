@@ -32,13 +32,15 @@ class SurfaceSyntax implements AbsSurfaceSyntax {
 	
 	public static SurfaceSyntax newSurfaceSyntax( JSONKeywords json_keys, boolean tuple_extension ) {
 		final Bracket square = new Bracket( '[', ']', json_keys.ARRAY ); 
+		final Bracket parentheses = new Bracket( '(', ')', json_keys.TUPLE );
 		if ( tuple_extension ) {
 			final Bracket tortoise = new Bracket( '〔', '〕', json_keys.TUPLE ); 
-			return new SurfaceSyntax( new Bracket[] { square, tortoise } );
+			return new SurfaceSyntax( new Bracket[] { parentheses, square, tortoise } );
 		} else {
-			return new SurfaceSyntax( new Bracket[] { square } );			
+			return new SurfaceSyntax( new Bracket[] { parentheses, square } );			
 		}
 	}
+	
 
 	@Override
 	public boolean isOpenArrayChar( final char ch ) {
@@ -70,6 +72,11 @@ class SurfaceSyntax implements AbsSurfaceSyntax {
 			if ( b.closer == ch ) return true;
 		}
 		return false;
+	}
+
+	@Override
+	public boolean isCloseParenthesis( final char ch ) {
+		return ch == ')';
 	}
 	
 

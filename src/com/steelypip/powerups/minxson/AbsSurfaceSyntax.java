@@ -9,5 +9,8 @@ interface AbsSurfaceSyntax {
 	char closingArrayChar( char ch );
 
 	boolean isCloseArrayChar( char ch );
+	
+	public boolean isCloseParenthesis( char ch );
+
 
 }

@@ -446,6 +446,45 @@ public class TestMinXSONParser {
 		);	
 	}
 
+	@Test
+	public void testParentheticalTuples() {
+		equivalent(
+			"()",
+			"<tuple/>",
+			'U'
+		);	
+		//	Note that this is the one case that does not require the tuple extension.
+		equivalent(
+			"( <foo/> )",
+			"<foo/>"
+		);	
+		equivalent(
+			"( <foo/>, <bar/> )",
+			"<tuple><foo/><bar/></tuple>",
+			'U'
+		);	
+	}
+
+	//	〔〕
+	@Test
+	public void testTortoiseShellTuples() {
+		equivalent(
+			"〔〕",
+			"<tuple/>",
+			'U'
+		);	
+		equivalent(
+			"〔 <foo/> 〕",
+			"<tuple><foo/></tuple>",
+			'U'
+		);	
+		equivalent(
+			"〔 <foo/>, <bar/> 〕",
+			"<tuple><foo/><bar/></tuple>",
+			'U'
+		);	
+	}
+
 	/*@Test
 	public void testPrettyPrint() throws FileNotFoundException {
 		MinXML minxml = new MinXSONParser( new FileReader( "data.minxson" ) ).read();

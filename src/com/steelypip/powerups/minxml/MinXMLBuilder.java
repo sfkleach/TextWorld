@@ -169,5 +169,11 @@ public interface MinXMLBuilder {
 	 */
 	@Nullable MinXML partBuild( final MinXML default_value );
 	
-	
+	default @NonNull MinXML partBuild() {
+		final @Nullable MinXML result = this.partBuild( null );
+		if ( result == null ) {
+			throw new Alert( "Cannot part build from no tags" );
+		}
+		return result;
+	}
 }

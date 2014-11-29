@@ -351,10 +351,6 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 	}
 	
 	void consumeOptionalTerminator() {
-		if ( this.isInParentheses() ) {
-			this.eatWhiteSpace();
-			this.mustPeekChar( ')' );
-		}
 		// End of input is a valid terminator!
 		while ( this.cucharin.hasNextChar() ) {
 			final char ch  = this.peekChar();
@@ -374,7 +370,7 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 					break;
 				}
 				throw new Alert( "Missing separator before '<'" ).culprit( "At character", ch );
-			} else if ( this.surface_syntax.isCloseArrayChar( ch ) || ch == '}' || ch == ')' ) {
+			} else if ( this.surface_syntax.isCloseArrayChar( ch ) || ch == '}' /* || ch == ')' */ ) {
 				break;
 			} else {
 				throw new Alert( "Unexpected character whilst looking for separator/terminator" ).culprit( "Character", ch );
@@ -424,7 +420,7 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 
 	
 	private boolean charEndsAttributes( final char c ) {
-		return c == '/' || c == '>' || this.surface_syntax.isOpenArrayChar( c ) || c == '{' || c == '(';
+		return c == '/' || c == '>' || this.surface_syntax.isOpenArrayChar( c ) || c == '{';
 	}
 
 	private void readExtraAttributes( final String initial_key ) {
@@ -486,9 +482,6 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 			this.startTagClose( tag );
 			this.pushTag( tag, '}', Context.InEmbeddedObject );
 			return;
-		} else if ( nch == '(' ) {
-			this.pushTag( "()", ')', Context.InEmbeddedParentheses );
-			return;
 		} else {
 			throw new Alert( "Missing element name" );
 		}
@@ -539,8 +532,6 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 				this.startTagOpen( json_keys.OBJECT );
 				this.startTagClose( json_keys.OBJECT );
 				this.pushTag( json_keys.OBJECT, '}', Context.InEmbeddedObject );
-			} else if ( name.isEmpty() && this.tryReadChar( '(' ) ) {
-				this.pushTag( "()", ')', Context.InEmbeddedParentheses );
 			} else {
 				this.normalStartTag( name );
 			} 
@@ -783,20 +774,17 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 				this.mustReadChar( '>' );
 			}
 			this.endTag( this.popTag( ch ) );
-			if ( this.isntAtTopLevel() ) {
-				this.setExpectingTerminator( was_in_element );
-			}
-		} else if ( ch == ')'  ) {
-			final boolean was_in_element = this.isInParentheses();
-			this.discardChar();
-			if ( was_in_element ) {
-				this.eatWhiteSpace();
-				this.mustReadChar( '/' );
-				this.mustReadChar( '>' );
-				this.dropTag();
-				if ( this.isntAtTopLevel() ) {
-					this.setExpectingTerminator( was_in_element );
+			if ( this.surface_syntax.isCloseParenthesis( ch ) ) {
+				MinXML parenthetical_expression = this.parent.partBuild();
+				if ( parenthetical_expression.size() == 1 ) {
+					parenthetical_expression = parenthetical_expression.get( 0 );
+				} else if ( ! this.TUPLE_EXTENSION ) {
+					throw new Alert( "Parentheses used as tuple without tuple extension enabled" );
 				}
+				this.parent.addElement( parenthetical_expression );
+			}
+ 			if ( this.isntAtTopLevel() ) {
+				this.setExpectingTerminator( was_in_element );
 			}
 		} else if ( this.TYPE_PREFIX_EXTENSION  && this.tryReadString( TYPE_ATTRIBUTE_PREFIX ) ) {
 			this.readTypeTag();
