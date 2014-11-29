@@ -698,7 +698,7 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 	}
 	
 	void readIdentifier() {
-		final String identifier = readIdentiferText();
+		final String identifier = readIdentifierText();
 		if ( this.isInObject() && ! this.extra_attributes.containsKey( json_keys.FIELD ) ) {
 			this.eatWhiteSpace();
 			this.mustReadChar( FIELD_ATTRIBUTE_SUFFIX );
@@ -713,7 +713,7 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 		}
 	}
 
-	public String readIdentiferText() {
+	public String readIdentifierText() {
 		StringBuilder sofar = new StringBuilder();
 		for (;;) {
 			final char ch = this.peekChar( ' ' );	// A character that's not part of an identifier.
