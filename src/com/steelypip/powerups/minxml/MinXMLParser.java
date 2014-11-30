@@ -18,12 +18,17 @@
  */
 package com.steelypip.powerups.minxml;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.LineNumberReader;
 import java.io.Reader;
 import java.util.Iterator;
 
 import com.steelypip.powerups.alert.Alert;
 import com.steelypip.powerups.charrepeater.CharRepeater;
 import com.steelypip.powerups.charrepeater.ReaderCharRepeater;
+import com.steelypip.powerups.io.LineNumberCounter;
 
 /**
  * This class wraps various types of input stream to
@@ -43,9 +48,11 @@ public class MinXMLParser implements Iterable< MinXML > {
 	private boolean pending_end_tag = false;
 	private MinXMLBuilder parent = null;
 	private String tag_name = null;	
+	private LineNumberCounter line_number; 
+	private File file;
 	
 	public MinXMLParser( CharRepeater rep, MinXMLBuilder parent ) {
-		this.parent = parent;
+		this.parent = parent != null ? parent : new FlexiMinXMLBuilder();
 		this.cucharin = rep;
 	}
 
@@ -56,13 +63,24 @@ public class MinXMLParser implements Iterable< MinXML > {
 	 * @param builder used to construct the MinXML objects
 	 */
 	public MinXMLParser( Reader reader, MinXMLBuilder builder ) {
-		this.parent = builder;
-		this.cucharin = new ReaderCharRepeater( reader );
+		this( new ReaderCharRepeater( reader ), builder );
 	}
 
 	public MinXMLParser( final Reader rep ) {
-		this.parent = new FlexiMinXMLBuilder();
-		this.cucharin = new ReaderCharRepeater( rep );
+		this( new ReaderCharRepeater( rep ), null );
+	}
+
+	public MinXMLParser( final File file, MinXMLBuilder parent ) throws FileNotFoundException {
+		this.parent = parent != null ? parent : new FlexiMinXMLBuilder();
+		final LineNumberReader lnr = new LineNumberReader( new FileReader( file ) );
+		lnr.setLineNumber( 1 );
+		this.line_number = () -> ( lnr.getLineNumber() );
+		this.file = file;
+		this.cucharin = new ReaderCharRepeater( lnr );
+	}
+
+	public MinXMLParser( final File file ) throws FileNotFoundException {
+		this( file, null );
 	}
 
 	private char nextChar() {
@@ -304,14 +322,24 @@ public class MinXMLParser implements Iterable< MinXML > {
 	 * @return the next element
 	 */
 	public MinXML readElement() {
-		while ( this.read() ) {
-			this.read();
-			if ( this.level == 0 ) break;
+		try {
+			while ( this.read() ) {
+				this.read();
+				if ( this.level == 0 ) break;
+			}
+			if ( this.level != 0 ) {
+				throw new Alert( "Unexpected end of input" );
+			}
+			return parent.build( null );
+		} catch ( Alert alert ) {
+			if ( this.line_number != null ) {
+				alert.culprit( "Line number", this.line_number.getLineNumber() );
+			} 
+			if ( this.file != null ) {
+				alert.culprit( "File", this.file );
+			}
+			throw alert;
 		}
-		if ( this.level != 0 ) {
-			throw new Alert( "Unexpected end of input" );
-		}
-		return parent.build( null );
 	}
 	
 	/**

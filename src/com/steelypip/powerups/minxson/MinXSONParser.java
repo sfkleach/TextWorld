@@ -19,6 +19,10 @@
 
 package com.steelypip.powerups.minxson;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.LineNumberReader;
 import java.io.Reader;
 import java.util.Iterator;
 import java.util.Map;
@@ -28,6 +32,7 @@ import java.math.BigInteger;
 import com.steelypip.powerups.alert.Alert;
 import com.steelypip.powerups.charrepeater.CharRepeater;
 import com.steelypip.powerups.charrepeater.ReaderCharRepeater;
+import com.steelypip.powerups.io.LineNumberCounter;
 import com.steelypip.powerups.json.JSONKeywords;
 import com.steelypip.powerups.minxml.FlexiMinXMLBuilder;
 import com.steelypip.powerups.minxml.MinXML;
@@ -52,15 +57,20 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 	private final CharRepeater cucharin;
 	private MinXMLBuilder parent = null;
 	
+	private LineNumberCounter line_number; 
+	private File file;
+	
 	private final TreeMap< String, String > extra_attributes = new TreeMap< String, String >();
 	private boolean EMBEDDED_EXTENSION = false;
 	private boolean TYPE_PREFIX_EXTENSION = false;
 	private boolean TUPLE_EXTENSION = false;
+	private boolean FIELD_EXTENSION = false;
 	
 	/**
 	 * These extensions toggle optional features.
 	 * 	Option 'A' switches on _A_ll extensions.
 	 *  Option 'E' switches on the _E_mbedded extension.
+	 *  Option 'F' switches on the _F_ield extension.
 	 *  Option 'T' switches on the _T_ype-prefix extension.
 	 *  Option 'U' switches on the t_U_ple extension.
 	 * @param extensions a character array encoding the set of extensions needed.
@@ -74,6 +84,9 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 				all = true;
 			case 'E': 
 				EMBEDDED_EXTENSION = true; 
+				if ( !all ) break;
+			case 'F':
+				FIELD_EXTENSION = true;
 				if ( !all ) break;
 			case 'T': 
 				TYPE_PREFIX_EXTENSION = true; 
@@ -89,18 +102,34 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 	}
 	
 	public MinXSONParser( CharRepeater rep, MinXMLBuilder parent, char... extensions ) {
-		this.parent = parent;
+		this.parent = parent != null ? parent : new FlexiMinXMLBuilder();
 		this.cucharin = rep;
 		this.enableExtensions( extensions );
 		this.surface_syntax = StdSurfaceSyntax.newSurfaceSyntax( this.json_keys, this.TUPLE_EXTENSION );
 	}
 
-	public MinXSONParser( Reader rep, MinXMLBuilder parent, char... extensions ) {
+	public MinXSONParser( final Reader rep, MinXMLBuilder parent, char... extensions ) {
 		this( new ReaderCharRepeater( rep ), parent, extensions );
 	}
 
 	public MinXSONParser( final Reader rep, char... extensions ) {
-		this( new ReaderCharRepeater( rep ), new FlexiMinXMLBuilder(), extensions );
+		this( new ReaderCharRepeater( rep ), null, extensions );
+	}
+	
+	public MinXSONParser( final File file, MinXMLBuilder parent, char... extensions ) throws FileNotFoundException {
+		final LineNumberReader lnr = new LineNumberReader( new FileReader( file ) );
+		lnr.setLineNumber( 1 );
+		this.line_number = () -> ( lnr.getLineNumber() );
+		this.file = file;
+		
+		this.cucharin = new ReaderCharRepeater( lnr );
+		this.parent = parent != null ? parent : new FlexiMinXMLBuilder();
+		this.enableExtensions( extensions );
+		this.surface_syntax = StdSurfaceSyntax.newSurfaceSyntax( this.json_keys, this.TUPLE_EXTENSION );
+	}
+
+	public MinXSONParser( final File file, char... extensions ) throws FileNotFoundException {
+		this( file, null, extensions );
 	}
 
 	public CharRepeater getCucharin() {
@@ -185,37 +214,52 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 		return this.cucharin.isNextString( want );
 	}
 	
-	private void eatUpTo( final char stop_char ) {
-		final char not_stop_char = ( stop_char != '\0' ? '\0' : '_' );
-		while ( this.cucharin.nextChar( not_stop_char ) != stop_char ) {
-		}		
+	public boolean tryEatComment() {
+		final char ch  = this.cucharin.peekChar( '\0' );
+		if ( ch == '/' ) {
+			this.cucharin.skipChar();
+			final char nch = this.cucharin.peekChar( '\0' );
+			if ( nch == '/' ) {
+				this.cucharin.skipUntil( '\n' );
+				this.cucharin.pushChar( '\n' ); 	//	But don't consume the newline.
+				return true;
+			} else if ( nch == '*' ) {
+				this.cucharin.skipChar();
+				for (;;) {
+					this.cucharin.skipUntil( '*' );
+					while ( this.tryReadChar( '*' ) ) {
+						//	skip.
+					}
+					if ( this.cucharin.nextChar() == '/' ) break;
+				}
+				return true;
+			} else {
+				this.cucharin.pushChar( ch );
+				return false;
+			}
+		} else {
+			return false;
+		}
 	}
 	
 	public void eatWhiteSpace() {
 		while ( this.cucharin.hasNextChar() ) {
-			final char ch = this.cucharin.nextChar();
-			if ( ch == '#' && this.peekChar( '\0' ) == '!' && this.isAtTopLevel() ) {
-				//	Shebang - note that this is coded quite carefully to leave 
-				//	the options open for other interpretations of #.
-				this.eatUpTo( '\n' );
-			} else if ( ch == '/' ) {
-				final char nch = this.peekChar( '\0' );
-				if ( nch == '/' ) {
-					this.eatUpTo( '\n' );
-				} else if ( nch == '*' ) {
-					for (;;) {
-						this.eatUpTo( '*' );
-						while ( this.tryReadChar( '*' ) ) {
-							//	skip.
-						}
-						if ( this.nextChar() == '/' ) break;
-					}
+			final char ch = this.cucharin.peekChar();
+			if ( ch == '#' ) {
+				this.cucharin.skipChar();
+				if ( this.peekChar( '\0' ) == '!' && this.isAtTopLevel() ) {
+					//	Shebang - note that this is coded quite carefully to leave 
+					//	the options open for other interpretations of #.
+					this.cucharin.skipUntil( '\n' );
 				} else {
-					this.cucharin.pushChar( ch );
+					this.cucharin.pushChar( '#' );
 					return;
 				}
-			} else if ( ! Character.isWhitespace( ch ) ) {
-				this.cucharin.pushChar( ch );
+			} else if ( this.tryEatComment() ) {
+				//	Continue.
+			} else if ( Character.isWhitespace( ch ) ) {
+				this.cucharin.skipChar();
+			} else {
 				return;
 			}
 		}
@@ -414,7 +458,7 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 			//	Also processing instructions: <? PITarget .... ?>.  This is an 
 			//	optional extension of the MinXSON language designed to make
 			//	importing from XML less onerous.
-			this.eatUpTo( '>' );
+			this.cucharin.skipUntil( '>' );
 		}
 	}
 
@@ -704,6 +748,14 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 			this.mustReadChar( FIELD_ATTRIBUTE_SUFFIX );
 			this.extra_attributes.put( json_keys.FIELD, identifier );
 			this.readOneTag();
+		} else if ( this.FIELD_EXTENSION && this.isInElement() && ! this.extra_attributes.containsKey( json_keys.FIELD ) ) {
+			this.eatWhiteSpace();
+			if ( this.tryReadChar( FIELD_ATTRIBUTE_SUFFIX ) ) {
+				this.extra_attributes.put( json_keys.FIELD, identifier );
+				this.readOneTag();				
+			} else {
+				parseId( identifier );
+			}
 		} else if ( "true".equals( identifier ) || "false".equals( identifier ) ) {
 			this.parseConstant( identifier, json_keys.BOOLEAN );
 		} else if ( identifier.equals( "null" ) ) {
@@ -798,14 +850,24 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 	 * 
 	 * @return a MinXML object or null if the end of input has been reached.
 	 */
-	public MinXML read() { 
-		while ( this.readOneTag() ) {
-			if ( this.isAtTopLevel() ) break;
+	public MinXML read() {
+		try {
+			while ( this.readOneTag() ) {
+				if ( this.isAtTopLevel() ) break;
+			}
+			if ( ! this.isAtTopLevel() ) {
+				throw new Alert( "Unexpected end of input" );
+			}
+			return parent.build( null );
+		} catch ( Alert alert ) {
+			if ( this.line_number != null ) {
+				alert.culprit( "Line number", this.line_number.getLineNumber() );
+			} 
+			if ( this.file != null ) {
+				alert.culprit( "File", this.file );
+			}
+			throw alert;
 		}
-		if ( ! this.isAtTopLevel() ) {
-			throw new Alert( "Unexpected end of input" );
-		}
-		return parent.build( null );
 	}
 
 	/**

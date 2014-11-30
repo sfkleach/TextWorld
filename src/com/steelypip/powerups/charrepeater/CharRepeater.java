@@ -92,10 +92,24 @@ public interface CharRepeater {
 	 */
     char peekChar( char value_if_needed );
  
-
 	/**
 	 * Discards the next character from the input. If the input is
 	 * exhausted then this method has no effect.
 	 */
-    void skipChar();
+    default void skipChar() {
+    	this.nextChar( '\0' );
+    }
+    
+    /**
+     * Discards characters until a particular character is encountered.
+     * @param ch the character to find.
+     * @return true if found, false if input is exhausted.
+     */
+    default boolean skipUntil( final char ch ) {
+    	while ( this.hasNextChar() ) {
+    		if ( ch == this.nextChar() ) return true;
+    	}
+    	return false;
+    }
+    
 }

@@ -9,6 +9,8 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.LinkedList;
 
+import org.eclipse.jdt.annotation.NonNull;
+
 import jline.ConsoleReader;
 import jline.ConsoleReaderInputStream;
 import jline.History;
@@ -56,13 +58,19 @@ public class Main extends StdCmdLineProcessor {
 			//break;
 		}
 	}
+	
+	public @NonNull World newWorld() {
+		final WorldFactory w = new WorldFactory();
+		this.files.forEach( ( File f ) -> w.load( f ) );
+		return w.newWorld();		
+	}
 
 	public void runGame() {
 		try {
-			final GameEngine e = new GameEngine();
+			final GameEngine e = new GameEngine( this.newWorld() );
 			System.out.println( "This is some example welcome text" );
 			System.out.println( "And this is some more" );
-			this.files.forEach( ( File f ) -> e.load( f ) );
+			e.showWorld();
 			e.run( this.input );
 		} catch ( Alert alert ) {
 			alert.report();
