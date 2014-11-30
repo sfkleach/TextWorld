@@ -21,6 +21,8 @@ package com.steelypip.powerups.json;
 
 import java.util.Map;
 
+import org.eclipse.jdt.annotation.NonNull;
+
 /**
  * This class acts as a dictionary of String constants that are used to
  * translates JSON terminology into MinX structures. The KEYS variable
@@ -35,49 +37,49 @@ public class JSONKeywords {
 	 * of container ("array" or "object") for MinXSON parsing. If only
 	 * parsing JSON it can be ignored.
 	 */
-	public final String TYPE;
+	public final @NonNull String TYPE;
 	
 	/** 
 	 * A constant that is used as an attribute to mark the field name
 	 * of components of objects. e.g. { "foo": 99 } turns into
 	 * {@code <object><constant FIELD="foo" type="integer" value="99"/></object>}
 	 */
-	public final String FIELD;
+	public final @NonNull String FIELD;
 	
 	/**
 	 * A constant that turns into the element name used to denote 
 	 * all scalar values - numbers, booleans and null. e.g. true turns
 	 * into {@code <CONSTANT type="boolean" value="true"/>}.
 	 */
-	public final String CONSTANT;
+	public final @NonNull String CONSTANT;
 
 	/**
 	 * A constant that denotes the type attribute of  
 	 * all scalar values - numbers, booleans and null. e.g. true turns
 	 * into {@code <constant CONSTANT_TYPE="boolean" value="true"/>}.
 	 */
-	public final String CONSTANT_TYPE;
+	public final @NonNull String CONSTANT_TYPE;
 
 	/**
 	 * A constant that denotes the value attribute of  
 	 * all scalar values - numbers, booleans and null. e.g. true turns
 	 * into {@code <constant type="boolean" CONSTANT_VALUE="true"/>}.
 	 */
-	public final String CONSTANT_VALUE;
+	public final @NonNull String CONSTANT_VALUE;
 	
 	/**
 	 * A constant that denotes the value given to the type attribute   
 	 * for floating point number. e.g. 3.14159 turns
 	 * into {@code <constant type=FLOAT value="3.14159"/>}.
 	 */	
-	public final String FLOAT;
+	public final @NonNull String FLOAT;
 	
 	/**
 	 * A constant that denotes the value given to the type attribute   
 	 * for whole numbers. e.g. -17 turns
 	 * into {@code <constant type=INTEGER value="-17"/>}.
 	 */	
-	public final String INTEGER;
+	public final @NonNull String INTEGER;
 	
 	
 	/**
@@ -85,80 +87,80 @@ public class JSONKeywords {
 	 * for strings. e.g. "foo" turns
 	 * into {@code <constant type=STRING value="foo"/>}.
 	 */	
-	public final String STRING;
+	public final @NonNull String STRING;
 
 	/**
 	 * A constant that denotes the value given to the type attribute   
 	 * for booleans. e.g. false turns
 	 * into {@code <constant type=BOOLEAN value="false"/>}.
 	 */	
-	public final String BOOLEAN;
+	public final @NonNull String BOOLEAN;
 	
 	/**
 	 * A constant that denotes the value given to the type attribute   
 	 * for null. e.g. null turns
 	 * into {@code <constant type=NULLEAN value="null"/>}.
 	 */	
-	public final String NULLEAN;
+	public final @NonNull String NULLEAN;
 	
 	/**
 	 * A constant that denotes the value given to the element name   
 	 * for arrays. e.g. [] turns
 	 * into {@code <ARRAY/>}
 	 */	
-	public final String ARRAY;
+	public final @NonNull String ARRAY;
 
 	/**
 	 * A constant that denotes the value given to the element name   
 	 * for explicit tuples. e.g. 〔〕 turns
 	 * into {@code <TUPLE/>}
 	 */	
-	public final String TUPLE;
+	public final @NonNull String TUPLE;
 
 	/**
 	 * A constant that denotes the value given to the element name   
 	 * for objects. e.g. {} turns
 	 * into {@code <OBJECT/>}
 	 */	
-	public final String OBJECT;
+	public final @NonNull String OBJECT;
 	
 	/**
 	 * A constant that denotes the value given to the value attribute   
 	 * for null. e.g. null turns
 	 * into {@code <constant type="null" value=NULLEAN_NULL/>}.
 	 */	
-	public final String NULLEAN_NULL;
+	public final @NonNull String NULLEAN_NULL;
 	
 	/**
 	 * A constant that denotes the value given to the value attribute   
 	 * for true. e.g. true turns
 	 * into {@code <constant type="boolean" value=BOOLEAN_TRUE/>}.
 	 */	
-	public final String BOOLEAN_TRUE;
+	public final @NonNull String BOOLEAN_TRUE;
 
 	/**
 	 * A constant that denotes the value given to the value attribute   
 	 * for false. e.g. false turns
 	 * into {@code <constant type="boolean" value=BOOLEAN_FALSE/>}.
 	 */	
-	public final String BOOLEAN_FALSE;
+	public final @NonNull String BOOLEAN_FALSE;
 	
 	/**
 	 * A constant that denotes the value given to the element name   
 	 * for identifiers - only relevant for MinXSON. e.g. x turns
 	 * into {@code <ID name="x"/>}.
 	 */	
-	public final String ID;
+	public final @NonNull String ID;
 
 	/**
 	 * A constant that denotes the value given to the name attribute   
 	 * for identifiers - only relevant for MinXSON. e.g. x turns
 	 * into {@code <id ID_NAME="x"/>}.
 	 */	
-	public final String ID_NAME;
+	public final @NonNull String ID_NAME;
 	
 	
-	private static String pick( Map< String, String > keys, String k, String otherwise ) {
+	private static @NonNull String pick( Map< String, String > keys, String k, @NonNull String otherwise ) {
 		if ( keys == null ) return otherwise;
 		final String first_choice = keys.get( k );
 		return first_choice != null ? first_choice : otherwise;
