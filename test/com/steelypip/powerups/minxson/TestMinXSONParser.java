@@ -386,19 +386,7 @@ public class TestMinXSONParser {
 		);
 		assertEquals( "author", m.getName() );
 	}
-	
-	@Test
-	public void testReadBindings1() {
-		MinXML m = new MinXSONParser( new StringReader( "foo:1, bar:2" ) ).readBindings();
-		assertEquals( "<object><constant field=\"foo\" type=\"integer\" value=\"1\"/><constant field=\"bar\" type=\"integer\" value=\"2\"/></object>", m.toString() );
-	}
-	
-	@Test
-	public void testReadBindings2() {
-		MinXML m = new MinXSONParser( new StringReader( "foo:1\nbar:2" ) ).readBindings();
-		assertEquals( "<object><constant field=\"foo\" type=\"integer\" value=\"1\"/><constant field=\"bar\" type=\"integer\" value=\"2\"/></object>", m.toString() );
-	}
-	
+		
 	@Test
 	public void testJSONEscapeInTag() {
 		equivalent(
