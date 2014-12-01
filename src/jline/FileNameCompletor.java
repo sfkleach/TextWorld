@@ -50,7 +50,7 @@ import java.util.*;
 public class FileNameCompletor implements Completor {
 
 	//	Eliminated examples for null buffer (Steve Leach)
-	public int complete( final String buffer, final int cursor, final List candidates ) {
+	public int complete( final String buffer, final int cursor, final List< String > candidates ) {
 		String translated = buffer;
 
 		// special character: ~ maps to the user's home directory
@@ -89,7 +89,7 @@ public class FileNameCompletor implements Completor {
 	 * @param	entries		the list of file to match
 	 * @param	candidates	the list of candidates to populate
 	 */
-	public int matchFiles( String buffer, String translated, File[] entries, List candidates ) {
+	public int matchFiles( String buffer, String translated, File[] entries, List< String > candidates ) {
 		if ( entries == null ) {
 			return -1;
 		}

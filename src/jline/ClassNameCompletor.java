@@ -49,7 +49,7 @@ public class ClassNameCompletor extends SimpleCompletor {
 
 
 	public static String[] getClassNames() throws IOException {
-		Set urls = new HashSet();
+		Set< URL > urls = new HashSet< URL >();
 		for ( ClassLoader loader = ClassNameCompletor.class.getClassLoader();
 			loader != null; loader = loader.getParent() ) {
 			if ( !( loader instanceof URLClassLoader ) ) {
@@ -78,13 +78,12 @@ public class ClassNameCompletor extends SimpleCompletor {
 		}
 
 
-		Set classes = new HashSet();
-		for ( Iterator i = urls.iterator(); i.hasNext(); ) {
+		Set< String > classes = new HashSet< String >();
+		for ( Iterator< URL > i = urls.iterator(); i.hasNext(); ) {
 			URL url = (URL)i.next();
 			File file = new File( url.getFile() );
 			if ( file.isDirectory() ) {
-				Set files = getClassFiles( file.getAbsolutePath(),
-					new HashSet(), file, new int[]{200} );
+				Set< String > files = getClassFiles( file.getAbsolutePath(), new HashSet< String >(), file, new int[]{200} );
 				classes.addAll( files );
 				continue;
 			}
@@ -94,28 +93,30 @@ public class ClassNameCompletor extends SimpleCompletor {
 				continue;
 			}
 
-			JarFile jf = new JarFile( file );
-			for ( Enumeration entries = jf.entries();
-				entries.hasMoreElements(); ) {
-				JarEntry entry = (JarEntry)entries.nextElement();
-				if ( entry == null ) {
-					continue;
+			try ( JarFile jf = new JarFile( file ) ) {
+				for ( Enumeration< ? > entries = jf.entries();
+					entries.hasMoreElements(); ) {
+					JarEntry entry = (JarEntry)entries.nextElement();
+					if ( entry == null ) {
+						continue;
+					}
+	
+					String name = entry.getName();
+					if ( !name.endsWith( ".class" ) ) // only use class file
+					{
+						continue;
+					}
+	
+					classes.add( name );
 				}
-
-				String name = entry.getName();
-				if ( !name.endsWith( ".class" ) ) // only use class file
-				{
-					continue;
-				}
-
-				classes.add( name );
 			}
 		}
+			
 
 		// now filter classes by changing "/" to "." and trimming the
 		// trailing ".class"
-		Set classNames = new TreeSet();
-		for ( Iterator i = classes.iterator(); i.hasNext(); ) {
+		Set< String > classNames = new TreeSet< String >();
+		for ( Iterator< String > i = classes.iterator(); i.hasNext(); ) {
 			String name = (String)i.next();
 			classNames.add( name.replace( '/', '.' ).substring( 0,
 				name.length() - 6 ) );
@@ -125,7 +126,7 @@ public class ClassNameCompletor extends SimpleCompletor {
 	}
 
 
-	private static Set getClassFiles( String root, Set holder, File directory,
+	private static Set< String > getClassFiles( String root, Set< String > holder, File directory,
 		int[] maxDirectories ) {
 		// we have passed the maximum number of directories to scan
 		if ( maxDirectories[ 0 ]-- < 0 ) {

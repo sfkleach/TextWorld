@@ -64,7 +64,7 @@ public class ConsoleReaderInputStream
 
 
 	private static class ConsoleEnumeration
-		implements Enumeration
+		implements Enumeration< InputStream >
 	{
 		private final ConsoleReader reader;
 		private ConsoleLineInputStream next = null;
@@ -79,7 +79,7 @@ public class ConsoleReaderInputStream
 		}
 
 
-		public Object nextElement ()
+		public InputStream nextElement ()
 		{
 			if (next != null)
 			{

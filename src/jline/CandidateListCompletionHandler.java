@@ -37,8 +37,8 @@ public class CandidateListCompletionHandler implements CompletionHandler {
 
 	private static ResourceBundle loc = ResourceBundle.getBundle( CandidateListCompletionHandler.class.getName() );
 
-
-	public boolean complete( final ConsoleReader reader, final List candidates, final int pos ) throws IOException {
+	@Override
+	public boolean complete( final ConsoleReader reader, final List< String > candidates, final int pos ) throws IOException {
 		CursorBuffer buf = reader.getCursorBuffer();
 
 		// if there is only one completion, then fill in the buffer
@@ -96,8 +96,8 @@ public class CandidateListCompletionHandler implements CompletionHandler {
 	 *
 	 * @param candidates the list of candidates to print
 	 */
-	private final void printCandidates( ConsoleReader reader, Collection candidates ) throws IOException {
-		final Set distinct = new HashSet( candidates );		//	added final (Steve Leach)
+	private final void printCandidates( ConsoleReader reader, Collection< String > candidates ) throws IOException {
+		final Set< String > distinct = new HashSet< String >( candidates );		//	added final (Steve Leach)
 
 		if ( distinct.size() > reader.getAutoprintThreshhold() ) {
 			reader.printString( MessageFormat.format( loc.getString( "display-candidates" ),
@@ -128,9 +128,9 @@ public class CandidateListCompletionHandler implements CompletionHandler {
 		// copy the values and make them distinct, without otherwise
 		// affecting the ordering. Only do it if the sizes differ.
 		if ( distinct.size() != candidates.size() ) {
-			Collection copy = new ArrayList();
-			for ( Iterator i = candidates.iterator(); i.hasNext(); ) {
-				Object next = i.next();
+			Collection< String > copy = new ArrayList<>();
+			for ( Iterator< String > i = candidates.iterator(); i.hasNext(); ) {
+				String next = i.next();
 				if ( !( copy.contains( next ) ) ) {
 					copy.add( next );
 				}
@@ -152,7 +152,7 @@ public class CandidateListCompletionHandler implements CompletionHandler {
 	 * <i>foobar</i>, <i>foobaz</i>, <i>foobuz</i>, the
 	 * method will return <i>foob</i>.
 	 */
-	private final String getUnambiguousCompletions( final List candidates ) {
+	private final String getUnambiguousCompletions( final List< String > candidates ) {
 		if ( candidates == null || candidates.size() == 0 ) {
 			return null;
 		}

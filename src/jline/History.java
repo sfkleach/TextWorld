@@ -29,7 +29,7 @@ import java.util.*;
  */
 public class History
 {
-	private List			history			= new ArrayList ();
+	private List< String >	history			= new ArrayList< String > ();
 	private PrintWriter		output			= null;
 	private int				maxSize			= 500;
 	private int				currentIndex	= 0;
@@ -81,15 +81,16 @@ public class History
 		throws IOException
 	{
 		BufferedReader breader = new BufferedReader (reader);
-		List lines = new ArrayList ();
+		List< String > lines = new ArrayList< String > ();
 		String line;
 		while ((line = breader.readLine ()) != null)
 		{
 			lines.add (line);
 		}
 
-		for (Iterator i = lines.iterator (); i.hasNext (); )
+		for (Iterator< String > i = lines.iterator (); i.hasNext (); ) {
 			addToHistory ((String)i.next ());
+		}
 	}
 
 
@@ -142,7 +143,7 @@ public class History
 	{
 		if (getOutput () != null)
 		{
-			for (Iterator i = history.iterator (); i.hasNext ();
+			for (Iterator< String > i = history.iterator (); i.hasNext ();
 				getOutput ().println ((String)i.next ()));
 
 			getOutput ().flush ();
@@ -250,7 +251,7 @@ public class History
 	/**
 	 *  Returns an immutable list of the history buffer.
 	 */
-	public List getHistoryList ()
+	public List< String > getHistoryList ()
 	{
 		return Collections.unmodifiableList (history);
 	}

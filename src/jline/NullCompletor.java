@@ -34,7 +34,8 @@ public class NullCompletor implements Completor {
 	 * Returns -1 always, indicating that the the buffer is never
 	 * handled.
 	 */
-	public int complete( final String buffer, int cursor, List candidates ) {
+	@Override
+	public int complete( final String buffer, int cursor, List< String > candidates ) {
 		return -1;
 	}
 }

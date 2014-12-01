@@ -47,7 +47,7 @@ public class MultiCompletor
 	 * Construct a MultiCompletor with the specified list of
 	 * {@link Completor} instances.
 	 */
-	public MultiCompletor( final List completors ) {
+	public MultiCompletor( final List< Completor > completors ) {
 		this( (Completor[])completors.toArray( new Completor[ completors.size() ] ) );
 	}
 
@@ -60,13 +60,13 @@ public class MultiCompletor
 		this.completors = completors;
 	}
 
-
-	public int complete( final String buffer, final int pos, final List cand ) {
+	@Override
+	public int complete( final String buffer, final int pos, final List< String > cand ) {
 		int[] positions = new int[ completors.length ];
-		List[] copies = new List[ completors.length ];
+		List< String >[] copies = new List[ completors.length ];
 		for ( int i = 0; i < completors.length; i++ ) {
 			// clone and save the candidate list
-			copies[ i ] = new LinkedList( cand );
+			copies[ i ] = new LinkedList< String >( cand );
 			positions[ i ] = completors[ i ].complete( buffer, pos, copies[ i ] );
 		}
 

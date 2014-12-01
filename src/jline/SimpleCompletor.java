@@ -42,7 +42,7 @@ public class SimpleCompletor implements Completor, Cloneable {
 	/**
 	 * The list of candidates that will be completed.
 	 */
-	SortedSet candidates;
+	SortedSet< String > candidates;
 
 
 	/**
@@ -97,7 +97,7 @@ public class SimpleCompletor implements Completor, Cloneable {
 	private static String[] getStrings( final Reader in ) throws IOException {
 		final Reader reader = in instanceof BufferedReader ? in : new BufferedReader( in );
 
-		List words = new LinkedList();
+		List< String > words = new LinkedList<>();
 		String line;
 		while ( ( line = ( (BufferedReader)reader ).readLine() ) != null ) {
 			for (
@@ -114,9 +114,9 @@ public class SimpleCompletor implements Completor, Cloneable {
 
 
 	//	Eliminated examples for buffer == null (Steve Leach)
-	public int complete( final String buffer, final int cursor, final List clist ) {
-		SortedSet matches = candidates.tailSet( buffer );
-		for ( Iterator i = matches.iterator(); i.hasNext(); ) {
+	public int complete( final String buffer, final int cursor, final List< String > clist ) {
+		SortedSet< String > matches = candidates.tailSet( buffer );
+		for ( Iterator< String > i = matches.iterator(); i.hasNext(); ) {
 			String can = (String)i.next();
 			if ( !( can.startsWith( buffer ) ) ) {
 				break;
@@ -151,10 +151,10 @@ public class SimpleCompletor implements Completor, Cloneable {
 	}
 
 
-	public void setCandidates( final SortedSet candidates ) {
+	public void setCandidates( final SortedSet< String > candidates ) {
 		if ( filter != null ) {
-			TreeSet filtered = new TreeSet();
-			for ( Iterator i = candidates.iterator(); i.hasNext(); ) {
+			TreeSet< String > filtered = new TreeSet<>();
+			for ( Iterator< String > i = candidates.iterator(); i.hasNext(); ) {
 				String element = (String)i.next();
 				element = filter.filter( element );
 				if ( element != null ) {
@@ -169,13 +169,13 @@ public class SimpleCompletor implements Completor, Cloneable {
 	}
 
 
-	public SortedSet getCandidates() {
+	public SortedSet< String > getCandidates() {
 		return Collections.unmodifiableSortedSet( this.candidates );
 	}
 
 
 	public void setCandidateStrings( final String[] strings ) {
-		setCandidates( new TreeSet( Arrays.asList( strings ) ) );
+		setCandidates( new TreeSet< String >( Arrays.asList( strings ) ) );
 	}
 
 

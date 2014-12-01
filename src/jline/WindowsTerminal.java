@@ -18,8 +18,13 @@
  */
 package jline;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 // TODO: handle arrow keys, which might require completely implementing the
 // console input reading in the .dll. For example, see:

@@ -18,9 +18,28 @@
  */
 package jline;
 
-import java.io.*;
-import java.util.*;
-import java.text.MessageFormat;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * A reader for console applications. It supports custom tab-completion,
@@ -43,10 +62,10 @@ public class ConsoleReader
 	/**
 	 * Map that contains the operation name to keymay operation mapping.
 	 */
-	public static SortedMap KEYMAP_NAMES;
+	public static SortedMap< String, Short > KEYMAP_NAMES;
 
 	static {
-		Map names = new TreeMap();
+		Map< String, Short > names = new TreeMap< String, Short >();
 
 		names.put( "MOVE_TO_BEG", new Short( MOVE_TO_BEG ) );
 		names.put( "MOVE_TO_END", new Short( MOVE_TO_END ) );
@@ -93,7 +112,7 @@ public class ConsoleReader
 		names.put( "COMPLETE", new Short( COMPLETE ) );
 		names.put( "EXIT", new Short( EXIT ) );
 
-		KEYMAP_NAMES = new TreeMap( Collections.unmodifiableMap( names ) );
+		KEYMAP_NAMES = new TreeMap<>( Collections.unmodifiableMap( names ) );
 	}
 
 
@@ -143,7 +162,7 @@ public class ConsoleReader
 	final CursorBuffer buf = new CursorBuffer();
 	static PrintWriter debugger;
 	History history = new History();
-	final List completors = new LinkedList();
+	final List< Completor > completors = new LinkedList<>();
 
 	private Character echoCharacter = null;
 
@@ -215,7 +234,7 @@ public class ConsoleReader
 			p.load( bindings );
 			bindings.close();
 
-			for ( Iterator i = p.keySet().iterator(); i.hasNext(); ) {
+			for ( Iterator< ? > i = p.keySet().iterator(); i.hasNext(); ) {
 				String val = (String)i.next();
 				try {
 					Short code = new Short( val );
@@ -248,7 +267,7 @@ public class ConsoleReader
 	 * Set the stream for debugging. Development use only.
 	 */
 	public void setDebug( final PrintWriter debugger ) {
-		this.debugger = debugger;
+		ConsoleReader.debugger = debugger;
 	}
 
 
@@ -703,13 +722,13 @@ public class ConsoleReader
 			return false;
 		} else {
 
-			List candidates = new LinkedList();
+			List< String > candidates = new LinkedList<>();
 			String bufstr = buf.buffer.toString();
 			int cursor = buf.cursor;
 
 			int position = -1;
 
-			for ( Iterator i = completors.iterator(); i.hasNext(); ) {
+			for ( Iterator< Completor > i = completors.iterator(); i.hasNext(); ) {
 				Completor comp = (Completor)i.next();
 				if ( ( position = comp.complete( bufstr, cursor, candidates ) ) != -1 ) {
 					break;
@@ -722,7 +741,7 @@ public class ConsoleReader
 			}
 
 			//	Sort and eliminate duplicates before passing on.
-			return completionHandler.complete( this, new ArrayList( new TreeSet( candidates ) ), position );
+			return completionHandler.complete( this, new ArrayList< String >( new TreeSet< String >( candidates ) ), position );
 		}
 	}
 
@@ -737,7 +756,7 @@ public class ConsoleReader
 	 *
 	 * @param stuff the stuff to print
 	 */
-	public void printColumns( final Collection stuff )
+	public void printColumns( final Collection< String > stuff )
 		throws IOException {
 		if ( stuff == null || stuff.size() == 0 ) {
 			return;
@@ -745,14 +764,14 @@ public class ConsoleReader
 
 		int width = getTermwidth();
 		int maxwidth = 0;
-		for ( Iterator i = stuff.iterator(); i.hasNext();
+		for ( Iterator< ? > i = stuff.iterator(); i.hasNext();
 			maxwidth = Math.max( maxwidth, i.next().toString().length() ) ) {
 			;
 		}
 
 		StringBuffer line = new StringBuffer();
 
-		for ( Iterator i = stuff.iterator(); i.hasNext(); ) {
+		for ( Iterator< String > i = stuff.iterator(); i.hasNext(); ) {
 			String cur = (String)i.next();
 
 			if ( line.length() + maxwidth > width ) {
@@ -818,7 +837,7 @@ public class ConsoleReader
 	/**
 	 * Returns an unmodifiable list of all the completors.
 	 */
-	public Collection getCompletors() {
+	public Collection< Completor > getCompletors() {
 		return Collections.unmodifiableList( completors );
 	}
 
@@ -1153,16 +1172,16 @@ public class ConsoleReader
 	}
 
 
-	/**
-	 * Delete the character at the current position and
-	 * redraw the remainder of the buffer.
-	 */
-	private final boolean deleteCurrentCharacter()
-		throws IOException {
-		buf.buffer.deleteCharAt( buf.cursor );
-		drawBuffer( 1 );
-		return true;
-	}
+//	/**
+//	 * Delete the character at the current position and
+//	 * redraw the remainder of the buffer.
+//	 */
+//	private final boolean deleteCurrentCharacter()
+//		throws IOException {
+//		buf.buffer.deleteCharAt( buf.cursor );
+//		drawBuffer( 1 );
+//		return true;
+//	}
 
 
 	private final boolean previousWord()

@@ -89,7 +89,7 @@ public class ArgumentCompletor implements Completor {
 	 *
 	 * @param completors the List of completors to use
 	 */
-	public ArgumentCompletor( final List completors ) {
+	public ArgumentCompletor( final List< Completor > completors ) {
 		this( (Completor[])completors.toArray( new Completor[ completors.size() ] ) );
 	}
 
@@ -149,8 +149,8 @@ public class ArgumentCompletor implements Completor {
 		return this.strict;
 	}
 
-
-	public int complete( final String buffer, final int cursor, final List candidates ) {
+	@Override
+	public int complete( final String buffer, final int cursor, final List< String > candidates ) {
 		ArgumentList list = delim.delimit( buffer, cursor );
 		int argpos = list.getArgumentPosition();
 		int argIndex = list.getCursorArgumentIndex();
@@ -174,7 +174,7 @@ public class ArgumentCompletor implements Completor {
 			String[] args = list.getArguments();
 			String arg = args == null || i >= args.length ? "" : args[ i ];
 
-			List subCandidates = new LinkedList();
+			List< String > subCandidates = new LinkedList<>();
 			if ( sub.complete( arg, arg.length(), subCandidates ) == -1 ) {
 				return -1;
 			}
@@ -293,7 +293,7 @@ public class ArgumentCompletor implements Completor {
 
 
 		public ArgumentList delimit( final String buffer, final int cursor ) {
-			List args = new LinkedList();
+			List< String > args = new LinkedList< String >();
 			StringBuffer arg = new StringBuffer();
 			int argpos = -1;
 			int bindex = -1;

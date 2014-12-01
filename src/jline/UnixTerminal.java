@@ -18,8 +18,9 @@
  */
 package jline;
 
-import java.io.*;
-import java.util.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 
 /**
@@ -37,7 +38,6 @@ import java.util.*;
 public class UnixTerminal
 	extends Terminal
 {
-	private Map terminfo;
 	private int width = -1;
 	private int height = -1;
 

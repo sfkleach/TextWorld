@@ -18,8 +18,8 @@
  */
 package jline;
 
-import java.io.*;
-import java.util.*;
+import java.io.IOException;
+import java.io.InputStream;
 
 
 /**

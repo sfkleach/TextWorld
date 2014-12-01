@@ -18,9 +18,11 @@
  */
 package jline;
 
-import java.io.*;
-import java.util.*;
-import java.text.MessageFormat;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.StringTokenizer;
 
 
 /**
@@ -36,9 +38,8 @@ public class ConsoleRunner
 	public static void main (final String[] args)
 		throws Exception
 	{
-		List argList = new ArrayList (Arrays.asList (args));
-		if (argList.size () == 0)
-		{
+		List< String > argList = new ArrayList< String >( Arrays.asList (args) );
+		if (argList.size () == 0) {
 			usage ();
 			return;
 		}
@@ -52,18 +53,20 @@ public class ConsoleRunner
 			System.getProperty ("user.home"), ".jline-" + mainClass
 				+ ".history")));
 
-		String completors = System.getProperty (ConsoleRunner.class.getName ()
-			+ ".completors", "");
-		List completorList = new ArrayList ();
-		for (StringTokenizer tok = new StringTokenizer (completors, ",");
-			tok.hasMoreTokens (); )
+		String completors = System.getProperty (ConsoleRunner.class.getName () + ".completors", "");
+		List< Completor > completorList = new ArrayList<>();
+		for (
+			StringTokenizer tok = new StringTokenizer (completors, ",");
+			tok.hasMoreTokens ();
+			// skip
+		)
 		{
-			completorList.add ((Completor)Class.forName (tok.nextToken ())
-				.newInstance ());
+			completorList.add ((Completor)Class.forName (tok.nextToken ()).newInstance ());
 		}
 
-		if (completorList.size () > 0)
+		if (completorList.size () > 0) {
 			reader.addCompletor (new ArgumentCompletor (completorList));
+		}
 
 		ConsoleReaderInputStream.setIn (reader, null);
 		try

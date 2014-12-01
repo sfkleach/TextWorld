@@ -27,6 +27,6 @@ import java.util.*;
  * @author <a href="mailto:mwp1@cornell.edu">Marc Prud'hommeaux</a>
  */
 public interface CompletionHandler {
-	boolean complete( ConsoleReader reader, List candidates, int position ) throws IOException;
+	boolean complete( ConsoleReader reader, List< String > candidates, int position ) throws IOException;
 }
 
