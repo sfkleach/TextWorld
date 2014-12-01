@@ -7,7 +7,6 @@ import java.io.LineNumberReader;
 import java.io.Reader;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.TreeMap;
 
 import org.eclipse.jdt.annotation.NonNull;
 
@@ -16,7 +15,6 @@ import com.steelypip.powerups.charrepeater.CharRepeater;
 import com.steelypip.powerups.charrepeater.ReaderCharRepeater;
 import com.steelypip.powerups.io.LineNumberCounter;
 import com.steelypip.powerups.minxml.FlexiMinXML;
-import com.steelypip.powerups.minxml.FlexiMinXMLBuilder;
 import com.steelypip.powerups.minxml.MinXML;
 import com.steelypip.powerups.minxml.MinXMLBuilder;
 import com.steelypip.powerups.minxson.MinXSONParser;
