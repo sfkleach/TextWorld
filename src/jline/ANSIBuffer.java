@@ -18,8 +18,8 @@
  */
 package jline;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 
 /**
@@ -47,7 +47,7 @@ public class ANSIBuffer
 
 	public void setAnsiEnabled( final boolean ansi )
 	{
-		this.ansiEnabled = ansiEnabled;
+		this.ansiEnabled = ansi;
 	}
 
 
