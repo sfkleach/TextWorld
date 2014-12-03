@@ -1,6 +1,10 @@
 package com.steelypip.textworld.main;
 
+import java.util.Scanner;
+
 import org.eclipse.jdt.annotation.NonNull;
+
+import com.steelypip.powerups.chain.Chain;
 
 public class GameEngine {
 	
@@ -15,13 +19,19 @@ public class GameEngine {
 	}
 
 	public void run( final ReadLine in_stream ) {
-		for (;;) {
+		while ( this.world.isActive() ) {
+			this.world.getAvatar().reportOnLocation();
 			final String line = in_stream.readLine();
 			if ( line == null ) break;
-			if ( "exit".equals( line ) || "quit".equals( line ) ) break;
-			System.out.println( "You typed: " + line );
-			System.out.println();
+			final Chain< String > command = Chain.newChain( new Scanner( line.toLowerCase() ) );
+			if ( command.isEmpty() ) continue;
+			if ( command.hasSingleMember( "exit" ) || command.hasSingleMember( "quit" ) ) break;
+			this.world.getAvatar().processCommand( command );
 		}
+	}
+
+	public @NonNull World getWorld() {
+		return this.world;
 	}
 	
 }

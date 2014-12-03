@@ -228,8 +228,12 @@ public class Alert extends RuntimeException implements Iterable< Culprit > {
 	 * @return the {@link Alert}
 	 * @param msg the main message
 	 */
-	public static Alert internalError( final String msg ) {
-		return new Alert( "Internal Error" ).note( "This is an internal error" );
+	public static Alert internalError( final @NonNull String msg ) {
+		return new Alert( "Internal Error" ).note( msg );
+	}
+
+	public static Alert internalError( Exception e ) {
+		return new Alert( "Internal Error", e ).note( "This is an internal error" );
 	}
 
 

@@ -5,20 +5,23 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.LinkedList;
-
-import org.eclipse.jdt.annotation.NonNull;
 
 import jline.ConsoleReader;
 import jline.ConsoleReaderInputStream;
 import jline.History;
 
+import org.eclipse.jdt.annotation.NonNull;
+
 import com.steelypip.powerups.alert.Alert;
 import com.steelypip.powerups.shell.CmdArgs;
 import com.steelypip.powerups.shell.CmdOption;
 import com.steelypip.powerups.shell.StdCmdLineProcessor;
+import com.steelypip.textworld.gameclasses.At;
+import com.steelypip.textworld.gameclasses.To;
+import com.steelypip.textworld.gameclasses.loadable.Avatar;
+import com.steelypip.textworld.gameclasses.loadable.Limbo;
 
 public class Main extends StdCmdLineProcessor {
 	
@@ -31,6 +34,7 @@ public class Main extends StdCmdLineProcessor {
 	} 
 	
 	Mode mode = Mode.CONSOLE;
+	boolean debugging = false;
 	ReadLine input = () -> System.console().readLine( "> " );
 	LinkedList< File > files = new LinkedList<>();
 	
@@ -48,7 +52,7 @@ public class Main extends StdCmdLineProcessor {
 			this.printUsage( System.out );
 			break;
 		case VERSION:
-			System.out.print( "TextWorld version 0.1" );
+			System.out.println( "TextWorld version 0.1" );
 			break;
 		case CONSOLE:
 			this.runGame();
@@ -61,16 +65,21 @@ public class Main extends StdCmdLineProcessor {
 	
 	public @NonNull World newWorld() {
 		final WorldFactory w = new WorldFactory();
+		w.addBuiltIns();
 		this.files.forEach( ( File f ) -> w.load( f ) );
-		return w.newWorld();		
+		return w.newWorld();
 	}
 
 	public void runGame() {
 		try {
 			final GameEngine e = new GameEngine( this.newWorld() );
-			System.out.println( "This is some example welcome text" );
-			System.out.println( "And this is some more" );
-			e.showWorld();
+			System.out.println( "Welcome to TextWorld 0.1" );
+			System.out.print( "Entering: " );
+			System.out.println( e.getWorld().getName() );
+			System.out.println();
+			if ( this.debugging ) {
+				e.showWorld();
+			}
 			e.run( this.input );
 		} catch ( Alert alert ) {
 			alert.report();
@@ -120,6 +129,8 @@ public class Main extends StdCmdLineProcessor {
         	this.mode = Mode.CONSOLE;
         } else if ( option.is(  'j', "jline", "Enables readline editing for UNIX terminals." ) ) {
         	this.input = this.jlineToReadLine();
+        } else if ( option.is( 'D', "debugging", "Enables debug output" ) ) {
+        	this.debugging = true;
         } else {
         	this.mode = Mode.ERROR;
         	return false;
