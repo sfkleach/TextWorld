@@ -18,10 +18,6 @@ import com.steelypip.powerups.alert.Alert;
 import com.steelypip.powerups.shell.CmdArgs;
 import com.steelypip.powerups.shell.CmdOption;
 import com.steelypip.powerups.shell.StdCmdLineProcessor;
-import com.steelypip.textworld.gameclasses.At;
-import com.steelypip.textworld.gameclasses.To;
-import com.steelypip.textworld.gameclasses.loadable.Avatar;
-import com.steelypip.textworld.gameclasses.loadable.Limbo;
 
 public class Main extends StdCmdLineProcessor {
 	
@@ -35,11 +31,20 @@ public class Main extends StdCmdLineProcessor {
 	
 	Mode mode = Mode.CONSOLE;
 	boolean debugging = false;
+	boolean gamemaster = false;
 	ReadLine input = () -> System.console().readLine( "> " );
 	LinkedList< File > files = new LinkedList<>();
 	
 	public static void main( String[] args ) {
 		new Main().run( args );
+	}
+	
+	public static String getVersion() {
+		try ( BufferedReader lines = new BufferedReader( new InputStreamReader( Main.class.getResourceAsStream( "version.txt" ) ) ) ) {
+			return lines.readLine();
+		} catch ( IOException e ) {
+			return "<version info unavailable>";
+		}		
 	}
 	
 	void run( String[] args ) {
@@ -52,7 +57,8 @@ public class Main extends StdCmdLineProcessor {
 			this.printUsage( System.out );
 			break;
 		case VERSION:
-			System.out.println( "TextWorld version 0.1" );
+			System.out.print( "TextWorld version " );
+			System.out.println( getVersion() );
 			break;
 		case CONSOLE:
 			this.runGame();
@@ -83,6 +89,9 @@ public class Main extends StdCmdLineProcessor {
 			e.run( this.input );
 		} catch ( Alert alert ) {
 			alert.report();
+			if ( this.debugging ) {
+				throw alert;
+			}
 		}
 	}
 
@@ -116,7 +125,6 @@ public class Main extends StdCmdLineProcessor {
 		} catch ( IOException e ) {
 			throw new Alert( e );
 		}
-		
 	}
 
 	@Override
@@ -131,6 +139,8 @@ public class Main extends StdCmdLineProcessor {
         	this.input = this.jlineToReadLine();
         } else if ( option.is( 'D', "debugging", "Enables debug output" ) ) {
         	this.debugging = true;
+        } else if ( option.is( 'S', "super", "Enables superuser commands" ) ) {
+        	this.gamemaster = true;
         } else {
         	this.mode = Mode.ERROR;
         	return false;

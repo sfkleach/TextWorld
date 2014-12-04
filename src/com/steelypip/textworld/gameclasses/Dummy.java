@@ -9,7 +9,8 @@ public class Dummy extends Thing {
 	MinXML configuration;
 
 	@Override
-	public void init( MinXML configuration ) {
+	public void init( final String uid, final MinXML configuration ) {
+		super.init( uid, configuration );
 		this.configuration = configuration;
 	}
 	

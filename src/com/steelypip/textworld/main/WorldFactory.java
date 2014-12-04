@@ -35,7 +35,7 @@ public class WorldFactory {
 	
 	public void put( String var, GameObject object ) {
 		this.name_space.put( var, object.setWorld( this.the_world ) );
-		object.init( new FlexiMinXML( "object" ) );
+		object.init( var, new FlexiMinXML( "object" ) );
 	}
 	
 	public void load( File top_level_folder ) {
@@ -49,7 +49,7 @@ public class WorldFactory {
 				var_config.put( var, game_object_config );
 			}
 			for ( Map.Entry< String, MinXML > e : var_config.entrySet() ) {
-				this.name_space.get( e.getKey() ).init( e.getValue() );
+				this.name_space.get( e.getKey() ).init( e.getKey(), e.getValue() );
 			}
 		} else {
 			throw new Alert( "Directory needed" ).hint( "Might not exist" ).culprit( "Folder name", top_level_folder );

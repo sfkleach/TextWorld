@@ -21,9 +21,7 @@ public class At extends Function2 {
 		this.default_location = limbo_the_default_location;
 	}
 
-	@Override
-	public void init( MinXML initial_configuration ) {
-	}
+
 
 	public Thing getLocation( Thing thing ) {
 		final Thing container = this.contained_by.get( thing );

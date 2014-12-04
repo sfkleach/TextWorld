@@ -6,22 +6,6 @@ import com.steelypip.textworld.gameclasses.loadable.Avatar;
 
 public abstract class Thing extends GameObject {
 	
-	private String name;
-	
-	public String getDefaultName() {
-		final String class_name = this.getClass().getName();
-		final int n = class_name.lastIndexOf( '.' );
-		if ( n == -1 ) return class_name;
-		return class_name.substring( n + 1 );
-	}
-	
-	public String getName() {
-		return this.name != null ? this.name : this.getDefaultName();
-	}
-
-	public void setName( String name ) {
-		this.name = name;
-	}
 
 	public Thing getLocation() {
 		final At at = this.getWorld().getAt();

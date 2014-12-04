@@ -4,18 +4,13 @@ import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 import com.steelypip.powerups.common.EmptySet;
-import com.steelypip.powerups.minxml.MinXML;
 
 public class To extends Relation1 {
 	
 	final Map< Thing, Set< Thing > > leads_to = new IdentityHashMap<>();
-	
-	@Override
-	public void init( MinXML initial_configuration ) {
-	}
+
 
 	public boolean leadsTo( Thing thing ) {
 		Set< Thing > set = this.leads_to.get( this );
