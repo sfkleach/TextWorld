@@ -23,7 +23,7 @@ public class GameEngine {
 			this.world.getAvatar().reportOnLocation();
 			final String line = in_stream.readLine();
 			if ( line == null ) break;
-			final Chain< String > command = Chain.newChain( new Scanner( line.toLowerCase() ) );
+			final Chain< String > command = Chain.newChain( new Scanner( line ) );
 			if ( command.isEmpty() ) continue;
 			if ( command.hasSingleMember( "exit" ) || command.hasSingleMember( "quit" ) ) break;
 			this.world.getAvatar().processCommand( command );

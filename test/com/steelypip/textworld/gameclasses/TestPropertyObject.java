@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import com.steelypip.powerups.minxml.FlexiMinXMLBuilder;
 import com.steelypip.powerups.minxml.MinXMLBuilder;
 import com.steelypip.textworld.gameclasses.ConstantActiveValue;
+import com.steelypip.textworld.main.World;
 
 import org.junit.Test;
 
@@ -40,6 +41,12 @@ public class TestPropertyObject {
 		b.endTag( null );
 		object.define( "foo", b.build() );
 		assertEquals( "gamma", object.get( "foo" ) );
+	}
+	
+	@Test
+	public void testCanonise() {
+		assertEquals( "lookAsActiveValue", PropertyObject.canonise( "look" ) );
+		assertEquals( "spawnsAtAsActiveValue", PropertyObject.canonise( "spawns-at" ) );
 	}
 
 }

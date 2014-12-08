@@ -17,7 +17,8 @@ public class GameObjectFactory {
 				Object object = gClass.newInstance();
 				try {
 					final GameObject game_object = (GameObject)object;
-					return game_object.setWorld( world );
+					game_object.setWorld( world );
+					return game_object;
 				} catch ( ClassCastException e ) {
 					throw new Alert( "GameObject expected" ).hint( "This category is not a GameObject" ).culprit( "Category", category ).culprit( "Actual class", object.getClass().getName() );
 				}
@@ -27,8 +28,7 @@ public class GameObjectFactory {
 				throw Alert.internalError( e );
 			}
 		} catch ( ClassNotFoundException e ) {
-//			System.err.println( "Substituting dummy class for " + category );
-			return new Dummy().setWorld( world );
+			return new Dummy( world );
 		}
 	}
 	

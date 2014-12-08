@@ -73,7 +73,9 @@ public class Main extends StdCmdLineProcessor {
 		final WorldFactory w = new WorldFactory();
 		w.addBuiltIns();
 		this.files.forEach( ( File f ) -> w.load( f ) );
-		return w.newWorld();
+		World world = w.newWorld();
+		world.getAvatar().setGamemaster( this.gamemaster );
+		return world;
 	}
 
 	public void runGame() {
@@ -139,7 +141,7 @@ public class Main extends StdCmdLineProcessor {
         	this.input = this.jlineToReadLine();
         } else if ( option.is( 'D', "debugging", "Enables debug output" ) ) {
         	this.debugging = true;
-        } else if ( option.is( 'S', "super", "Enables superuser commands" ) ) {
+        } else if ( option.is( 'M', "gamemaster", "Enables game-master commands" ) ) {
         	this.gamemaster = true;
         } else {
         	this.mode = Mode.ERROR;

@@ -1,8 +1,5 @@
 package com.steelypip.textworld.gameclasses;
 
-import java.io.OutputStreamWriter;
-import java.lang.reflect.Field;
-
 import com.steelypip.powerups.alert.Alert;
 import com.steelypip.powerups.json.JSONKeywords;
 import com.steelypip.powerups.minxml.MinXML;
@@ -11,16 +8,26 @@ import com.steelypip.textworld.main.World;
 public abstract class GameObject extends PropertyObject {
 	
 	protected World world;
-	
-	public World getWorld() {
-		return world;
+
+	public GameObject() {
 	}
 
-	public GameObject setWorld( World world ) {
+	public GameObject( World world ) {
 		this.world = world;
-		return this;
 	}
-	
+
+	public World getWorld() {
+		if ( this.world == null ) {
+			throw new Alert( "Trying to access the world of an uninitialised game object" ).culprit(  "Game object", this );
+		}
+		return this.world;
+	}
+
+	public void setWorld( World world ) {
+		this.world = world;
+	}
+
+
 	private String unique_id;
 	private ConstantActiveValue< String > name = new ConstantActiveValue< String >( this.getDefaultName() );
 	private ConstantActiveValue< String > summary = new ConstantActiveValue< String >( this.getDefaultName() );
@@ -74,7 +81,7 @@ public abstract class GameObject extends PropertyObject {
 		for ( MinXML field_value : initial_configuration ) {
 			if ( field_value.hasAttribute( JSONKeywords.KEYS.FIELD ) ) {
 				try {
-					this.define( field_value.getAttribute( JSONKeywords.KEYS.FIELD ), field_value );
+					this.define( field_value.getAttribute( JSONKeywords.KEYS.FIELD ), this.world.convertFromMinXML( field_value ) );
 				} catch ( Alert alert ) {
 					alert.report();
 				}
@@ -86,5 +93,9 @@ public abstract class GameObject extends PropertyObject {
 		System.out.println( this.toString() );
 	}
 
-	
+	public GameObject findByUID( final String string ) {
+		return this.getWorld().findByUID( string );
+	}
+
+
 }

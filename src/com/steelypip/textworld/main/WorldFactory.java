@@ -2,6 +2,8 @@ package com.steelypip.textworld.main;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -18,9 +20,30 @@ import com.steelypip.textworld.gameclasses.loadable.Limbo;
 
 public class WorldFactory {
 	
+	static class Initialisation {
+		GameObject game_object;
+		String uid;
+		MinXML minx;
+		File file_name;
+
+		public Initialisation( GameObject game_object, String uid, MinXML minx, File file_name ) {
+			if ( game_object == null ) {
+				throw new Alert( "Setting up null game object" ).culprit( "UID", uid );
+			}
+			this.game_object = game_object;
+			this.uid = uid;
+			this.minx = minx;
+			this.file_name = file_name;
+		}
+
+		public void init() {
+			System.out.println( "Initialisation for " + file_name );
+			game_object.init( this.uid,  minx );
+		}
+	}
+	
 	final private @NonNull World the_world = new World();
 	final private Map< String, GameObject > name_space = the_world.getNameSpace();
-	final private Map< String, MinXML > var_config = new TreeMap<>(); 
 
 	final private static FileFilter filter = ( File pathname ) -> pathname.exists() && ( pathname.isDirectory() || pathname.getName().matches( "[^=.]*=[^=.]*\\.[^=.]*$" ) ); 
 	
@@ -33,23 +56,30 @@ public class WorldFactory {
 		this.put( World.AVATAR, new Avatar() );
 	}
 	
-	public void put( String var, GameObject object ) {
-		this.name_space.put( var, object.setWorld( this.the_world ) );
-		object.init( var, new FlexiMinXML( "object" ) );
+	public void put( String var, GameObject game_object ) {
+		game_object.setWorld( this.the_world );
+		this.name_space.put( var, game_object );
+		game_object.init( var, new FlexiMinXML( "object" ) );
 	}
 	
 	public void load( File top_level_folder ) {
 		this.the_world.setName( top_level_folder.getName() );
 		if ( top_level_folder.isDirectory() ) {
+			final List< Initialisation > initialisations = new ArrayList<>();
 			for ( File f : top_level_folder.listFiles( filter ) ) {
-				final @NonNull MinXML game_object_config = readMinXML( f );
+				if ( f == null ) throw Alert.internalError();
 				final @NonNull String var = getIdentifier( f );
-				final @NonNull String type = getType( f );
-				this.name_space.put( var, GameObjectFactory.createBlank( type, this.the_world ) );
-				var_config.put( var, game_object_config );
+				GameObject game_object = this.name_space.get( var );
+				if ( game_object == null ) {
+					final @NonNull String type = getType( f );
+					game_object = GameObjectFactory.createBlank( type, this.the_world );
+					this.name_space.put( var, game_object );
+				}
+				final @NonNull MinXML game_object_config = readMinXML( f );
+				initialisations.add( new Initialisation( game_object, var, game_object_config, f ) );
 			}
-			for ( Map.Entry< String, MinXML > e : var_config.entrySet() ) {
-				this.name_space.get( e.getKey() ).init( e.getKey(), e.getValue() );
+			for ( Initialisation i : initialisations ) {
+				i.init();
 			}
 		} else {
 			throw new Alert( "Directory needed" ).hint( "Might not exist" ).culprit( "Folder name", top_level_folder );
@@ -96,6 +126,7 @@ public class WorldFactory {
 	public @NonNull World newWorld() {
 		return this.the_world;
 	}
+
 
 
 }

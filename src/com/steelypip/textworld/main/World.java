@@ -7,6 +7,8 @@ import java.util.Map.Entry;
 import org.eclipse.jdt.annotation.NonNull;
 
 import com.steelypip.powerups.alert.Alert;
+import com.steelypip.powerups.json.JSONKeywords;
+import com.steelypip.powerups.minxml.MinXML;
 import com.steelypip.textworld.gameclasses.At;
 import com.steelypip.textworld.gameclasses.GameObject;
 import com.steelypip.textworld.gameclasses.To;
@@ -105,7 +107,36 @@ public class World {
 	public void setName( String name ) {
 		this.name = name;
 	}
+
+	public GameObject findByUID( final String uid ) {
+//		for ( String key : this.name_space.keySet() ) {
+//			System.out.println( "key = " + key );
+//		}
+		return this.name_space.get( uid );
+	}	
 	
-	
+	public Object convertFromMinXML( final MinXML field_value ) {
+//		field_value.prettyPrint( new OutputStreamWriter( System.out ) );
+		if ( field_value.hasName( JSONKeywords.KEYS.CONSTANT ) ) {
+			if ( field_value.hasAttribute( JSONKeywords.KEYS.CONSTANT_TYPE, JSONKeywords.KEYS.STRING ) ) {
+				return field_value.getAttribute( JSONKeywords.KEYS.CONSTANT_VALUE );
+			} else {
+				throw Alert.unimplemented( "Non-string field" );
+ 			}
+		} else if ( 
+			field_value.hasName( JSONKeywords.KEYS.ID ) && 
+			field_value.hasAttribute( JSONKeywords.KEYS.ID_NAME )
+		) {
+			final String variable = field_value.getAttribute( JSONKeywords.KEYS.ID_NAME );
+			final GameObject game_object = this.name_space.get( variable );
+			if ( game_object != null ) {
+				return game_object;
+			} else{
+				throw new Alert( "Reference to undefined variable" ).culprit( "Variable", variable );
+			}
+		} else {
+			throw Alert.unimplemented( "Field not a constant or identifer" );
+		}
+	}
 	
 }
