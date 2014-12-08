@@ -31,6 +31,11 @@ public class Null< T > extends Chain< T > {
 	public boolean hasSize( final int n ) {
 		return n == 0;
 	}
+
+	@Override
+	public boolean hasSizeAtLeast( final int n ) {
+		return n <= 0;
+	}
 	
 	
 

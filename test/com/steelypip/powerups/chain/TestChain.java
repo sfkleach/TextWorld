@@ -39,7 +39,8 @@ public class TestChain {
 		assertTrue( chain.hasSize( 2 ) );
 	}
 
-	@Test void testGet() {
+	@Test 
+	public void testGet() {
 		List< String > list = new ArrayList<>();
 		list.add( "foo" );
 		list.add( "bar" );

@@ -50,6 +50,11 @@ public class Pair< T > extends Chain< T > {
 			return this.tail.get( n - 1 );
 		}
 	}
+
+	@Override
+	public boolean hasSizeAtLeast( final int n ) {
+		return n <= 1 || this.tail.hasSizeAtLeast( n - 1 );
+	}
 	
 	
 	

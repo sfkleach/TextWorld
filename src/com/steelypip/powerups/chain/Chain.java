@@ -74,6 +74,12 @@ public abstract class Chain< T > implements Iterable< T > {
 			return new Pair< U >( function.apply( this.getHead() ), this.getTail().map( function ) );
 		}
 	}
+
+	public boolean hasFirst( T x ) {
+		return this.isntEmpty() && ( x == null ? null == this.getHead() : x.equals( this.getHead() ) );
+	}
+
+	public abstract boolean hasSizeAtLeast( int n );
 	
 	
 	
