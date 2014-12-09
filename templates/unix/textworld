@@ -1,0 +1,2 @@
+#!/bin/sh
+java -jar ./Builds/textworld.v0.1-s1+01.jar $*

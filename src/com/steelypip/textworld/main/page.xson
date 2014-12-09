@@ -2,20 +2,23 @@
 	<head>
 		<link rel="stylesheet" type="text/css" href="/static/page.css" />
 		<title>
-			"TextWorld", <id name="version"/>
+			"TextWorld", version
 		</title>
 	</head>
 	<body>
 		<if name="active" test="ok" {
 		then:
-			<div style="font-family: Monaco; font-size: 13pt;">
+			<div>
+				<if name="image" test="ok">
+					<img{ "src": image }/>
+				</if>
 				<pre>
-					<id name="welcome"/>
-					<id name="response"/>
+					welcome; 
+					response
 				</pre>
 				<pre>
 					<p>
-						<id name="aboutLocation"/>
+						aboutLocation
 					</p>
 					<form method="get">
 						<input type="text" name="command" autofocus="true"/>

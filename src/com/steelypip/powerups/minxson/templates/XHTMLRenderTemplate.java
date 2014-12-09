@@ -66,6 +66,31 @@ public class XHTMLRenderTemplate {
 		return null;
 	}
 	
+	private void printAttribute( final String key, final String value ) {
+		print_writer.print( ' ' );
+		print_writer.print( key );
+		print_writer.print( '=' );
+		print_writer.print( '"' );
+		MinXMLWriter.printValue( print_writer, value );
+		print_writer.print( '"' );		
+	}
+	
+	String asStringValue( final MinXML minx ) {
+		final @NonNull String interned = minx.getInternedName(); 
+		if ( interned == JSONKeywords.KEYS.CONSTANT ) {
+			return minx.getAttribute( JSONKeywords.KEYS.CONSTANT_VALUE, "" );
+		} else if ( interned == JSONKeywords.KEYS.ID ) {
+			final MinXML replacement = dereference( minx, null );
+			if ( replacement != null ) {
+				return this.asStringValue( replacement );
+			} else {
+				return null;
+			}
+		} else {
+			throw new Alert( "Cannot render this expression as a string" );
+		}
+	}
+	
 	public void render( final MinXML minx ) {
 		final @NonNull String interned = minx.getInternedName(); 
 		if ( interned == JSONKeywords.KEYS.CONSTANT ) {
@@ -88,12 +113,14 @@ public class XHTMLRenderTemplate {
 			print_writer.print( '<' );
 			print_writer.print( interned );
 			for ( Map.Entry< String, String > entry : minx.asMapEntries() ) {
-				print_writer.print( ' ' );
-				print_writer.print( entry.getKey() );
-				print_writer.print( '=' );
-				print_writer.print( '"' );
-				MinXMLWriter.printValue( print_writer, entry.getValue() );
-				print_writer.print( '"' );
+				if ( JSONKeywords.KEYS.FIELD.equals( entry.getKey() ) ) continue;
+				this.printAttribute( entry.getKey(), entry.getValue() );
+			}
+			for ( MinXML kid : minx ) {
+				if ( kid.hasAttribute( JSONKeywords.KEYS.FIELD ) ) {
+					final String field_value = kid.getAttribute( JSONKeywords.KEYS.FIELD );
+					this.printAttribute( field_value, this.asStringValue( kid ) );
+				}
 			}
 			if ( minx.isEmpty() ) {
 				print_writer.print( "/>" );
@@ -101,6 +128,7 @@ public class XHTMLRenderTemplate {
 				print_writer.print( '>' );
 				
 				for ( MinXML kid : minx ) {
+					if ( kid.hasAttribute( JSONKeywords.KEYS.FIELD ) ) continue;
 					this.render( kid );
 				}
 				

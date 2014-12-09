@@ -9,6 +9,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.TreeMap;
 
 import org.eclipse.jdt.annotation.Nullable;
@@ -103,6 +105,7 @@ class GameHandler implements HttpHandler {
 		environment.put( "response", null );
 		environment.put( "aboutLocation", null );
 		environment.put( "active", newBoolean( true ) );
+		environment.put( "image", null );
 		
 		try {
 			final Chain< String > command = Chain.newChain( new Scanner( command_line != null ? command_line : "" ) );
@@ -154,7 +157,16 @@ class GameHandler implements HttpHandler {
 			this.message( this.findCommand( http_exchange ), pw );
 		}
 		if ( !this.world.isActive() ) {
-			this.http_server.stop( 0 );
+			final Timer timer = new Timer();
+			timer.schedule( 
+				new TimerTask() { 
+					public void run() { 
+						GameHandler.this.http_server.stop( 0 ); 
+						timer.cancel();
+					} 
+				}, 
+				1000 
+			);
 		}
 	}
 	

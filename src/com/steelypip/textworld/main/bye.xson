@@ -2,10 +2,10 @@
 	<head>
 		<link rel="stylesheet" type="text/css" href="/static/page.css" />
 		<title>
-			"TextWorld", <id name="version"/>
+			"TextWorld", version
 		</title>
 	</head>
 	<body>
-		"Bye for now - thanks for playing!"
+		<p> "Bye for now - thanks for playing!" </p>
 	</body>
 </html>
