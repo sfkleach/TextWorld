@@ -51,6 +51,29 @@ public class MinXMLWriter {
 		this( new PrintWriter( w ) );
 	}
 	
+	public static void printValue( final PrintWriter pw, final String value ) {
+		for ( int n = 0; n < value.length(); n++ ) {
+			final char ch = value.charAt( n );
+			if ( ch == '"' ) {
+				pw.print( "&quot;" );
+			} else if ( ch == '\'' ) {
+				pw.print(  "&apos;" );
+			} else if ( ch == '<' ) {
+				pw.print( "&lt;" );
+			} else if ( ch == '>' ) {
+				pw.print( "&gt;" );
+			} else if ( ch == '&' ) {
+				pw.print( "&amp;" );
+			} else if ( ' ' <= ch && ch <= '~' ) {
+				pw.print( ch );
+			} else {
+				pw.print( "&#" );
+				pw.print( (int)ch );
+				pw.print( ';' );
+			}
+		}
+	}
+	
 	public void print( MinXML x ) {
 		this.indenter.indent();
 		pw.print( "<" );
@@ -60,26 +83,7 @@ public class MinXMLWriter {
 			pw.print( key_value.getKey() );
 			pw.print( "=\"" );
 			final String v = key_value.getValue();
-			for ( int n = 0; n < v.length(); n++ ) {
-				final char ch = v.charAt( n );
-				if ( ch == '"' ) {
-					pw.print( "&quot;" );
-				} else if ( ch == '\'' ) {
-					pw.print(  "&apos;" );
-				} else if ( ch == '<' ) {
-					pw.print( "&lt;" );
-				} else if ( ch == '>' ) {
-					pw.print( "&gt;" );
-				} else if ( ch == '&' ) {
-					pw.print( "&amp;" );
-				} else if ( ' ' <= ch && ch <= '~' ) {
-					pw.print( ch );
-				} else {
-					pw.print( "&#" );
-					pw.print( (int)ch );
-					pw.print( ';' );
-				}
-			}
+			printValue( pw, v );
 			pw.print( "\"" );
 		}
 		if ( x.isEmpty() ) {

@@ -1,0 +1,27 @@
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="/static/page.css" />
+		<title>
+			"TextWorld", <id name="version"/>
+		</title>
+	</head>
+	<body>
+		<if name="active" test="ok" {
+		then:
+			<div style="font-family: Monaco; font-size: 13pt;">
+				<pre>
+					<id name="welcome"/>
+					<id name="response"/>
+				</pre>
+				<pre>
+					<p>
+						<id name="aboutLocation"/>
+					</p>
+					<form method="get">
+						<input type="text" name="command" autofocus="true"/>
+					</form>
+				</pre>
+			</div>
+		}/>
+	</body>
+</html>

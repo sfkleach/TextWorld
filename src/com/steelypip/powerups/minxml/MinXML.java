@@ -45,6 +45,17 @@ public interface MinXML extends List< @NonNull MinXML > {
 	@NonNull String getName();
 	
 	/**
+	 * Similar to getName but it is guaranteed that the result
+	 * is interned.
+	 * @return an interned version of the element name
+	 */
+	@SuppressWarnings("null")
+	default @NonNull String getInternedName() {
+		return this.getName().intern();
+	}
+
+	
+	/**
 	 * Returns true if the name of the element is the same as
 	 * given string. Equivalent to this.getName() == name.
 	 * 
@@ -128,7 +139,7 @@ public interface MinXML extends List< @NonNull MinXML > {
 	
 	/**
 	 * Returns a iterator for the set of keys of the attributes of an element, as if the
-	 * attributes were implemented as a {@link Map}, which shares updates
+	 * attributes were implemented as a {@link Map}, which does not share updates
 	 * with the original element (when updates are allowed). If you want
 	 * updates to be shared use {@link asMapKeys}.
 	 *  
@@ -147,7 +158,7 @@ public interface MinXML extends List< @NonNull MinXML > {
 	
 	/**
 	 * Returns a iterator over the attributes of an element, as if the
-	 * attributes were implemented as a {@link Map}, which shares updates
+	 * attributes were implemented as a {@link Map}, which does not share updates
 	 * with the original element (when updates are allowed). If you want
 	 * updates to be shared use {@link asMapEntries}.
 	 *  
@@ -295,4 +306,5 @@ public interface MinXML extends List< @NonNull MinXML > {
 	 * @return a deep copy
 	 */
 	@NonNull MinXML deepCopy();
+
 }

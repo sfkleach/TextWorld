@@ -554,7 +554,7 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 			//	It is a standalone tag with embedded pairs.
 			this.pushTag( name, '}', Context.InEmbeddedObject );
 		} else {
-			throw new Alert( "Invalid continuation" );
+			throw new Alert( "Invalid continuation" ).culprit( "Character", nch );
 		}
 	}
 

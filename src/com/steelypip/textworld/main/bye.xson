@@ -1,0 +1,11 @@
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="/static/page.css" />
+		<title>
+			"TextWorld", <id name="version"/>
+		</title>
+	</head>
+	<body>
+		"Bye for now - thanks for playing!"
+	</body>
+</html>

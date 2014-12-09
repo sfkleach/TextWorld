@@ -159,6 +159,22 @@ public class JSONKeywords {
 	 */	
 	public final @NonNull String ID_NAME;
 	
+	/**
+	 * A constant that denotes the value used for conditional 
+	 * choices in templates.
+	 */
+	public final @NonNull String IF;
+	
+	/**
+	 * A constant that denotes the value given to the name attribute   
+	 * for conditions in templates - only relevant for MinXSON. 
+	 */	
+	public final @NonNull String IF_NAME;
+	public final @NonNull String IF_TEST;
+	public final @NonNull String IF_TEST_OK;
+	public final @NonNull String IF_THEN;
+	public final @NonNull String IF_ELSE;
+
 	
 	private static @NonNull String pick( Map< String, String > keys, String k, @NonNull String otherwise ) {
 		if ( keys == null ) return otherwise;
@@ -191,9 +207,16 @@ public class JSONKeywords {
 		 BOOLEAN_FALSE = pick( keys, "BOOLEAN_FALSE", "false" );
 		 ID = pick( keys, "ID", "id" );
 		 ID_NAME = pick( keys, "ID_NAME", "name" );
+		 IF = pick( keys, "IF", "if" );
+		 IF_NAME = pick( keys, "IF_NAME", "name" );
+		 IF_TEST = pick( keys, "IF_TEST", "test" ); 
+		 IF_TEST_OK = pick( keys, "IF_TEST_OK", "ok" ); 
+		 IF_THEN = pick( keys, "IF_THEN", "then" ); 
+		 IF_ELSE = pick( keys, "IF_ELSE", "else" ); 
 	}
 	
 	public static final JSONKeywords KEYS = new JSONKeywords( null );
+
 
 
 

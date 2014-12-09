@@ -60,6 +60,11 @@ public class FlexiMinXML extends AbsFlexiMinXML {
 		super( name.intern() ); 
 	}
 	
+	public @NonNull String getInternedName() {
+		return this.name;
+	}
+
+	
 	private FlexiMinXML( final @NonNull MinXML element ) {
 		super( element.getName() );
 		this.putAllAttributes( element.asMap() );
