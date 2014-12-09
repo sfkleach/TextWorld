@@ -12,10 +12,10 @@ public abstract class Thing extends GameObject {
 	}
 	
 	public void setLocation( final Thing place ) {
-		System.out.print( "Setting the location of ... " );
-		System.out.print( this );
-		System.out.print( " to " );
-		System.out.println( place );
+//		System.out.print( "Setting the location of ... " );
+//		System.out.print( this );
+//		System.out.print( " to " );
+//		System.out.println( place );
 		final At at = this.getWorld().getAt();
 		at.setLocation( this, place );
 	}

@@ -1,5 +1,6 @@
 package com.steelypip.textworld.gameclasses.loadable;
 
+import java.io.PrintWriter;
 import java.util.Objects;
 
 import com.steelypip.powerups.alert.Alert;
@@ -11,6 +12,16 @@ import com.steelypip.textworld.gameclasses.Thing;
 import com.steelypip.textworld.main.World;
 
 public class Avatar extends Agent {
+	
+	PrintWriter print_writer = new PrintWriter( System.out, true );
+
+	public PrintWriter getPrintWriter() {
+		return print_writer;
+	}
+
+	public void setPrintWriter( PrintWriter print_writer ) {
+		this.print_writer = print_writer;
+	}
 
 	static class PreviousLocation {
 		
@@ -60,7 +71,7 @@ public class Avatar extends Agent {
 
 	public void processCommand( Chain< String > command ) {
 		if ( ! this.isGamemaster() && isPrivilegedCommand( command ) ) {
-			System.err.println( "Sorry, that's not something I can do right now" );
+			this.print_writer.println( "Sorry, that's not something I can do right now" );
 			return;
 		} else if ( command.isEmpty() ) {
 			return;
@@ -78,19 +89,19 @@ public class Avatar extends Agent {
 	}
 
 	public void report( final char ch ) {
-		System.out.print( ch );
+		this.print_writer.print( ch );
 	}
 
 	public void report( final String string ) {
-		System.out.print( string );
+		this.print_writer.print( string );
 	}
 
 	public void reportln( final char ch  ) {
-		System.out.println( ch );
+		this.print_writer.println( ch );
 	}
 
 	public void reportln( final String string ) {
-		System.out.println( string );
+		this.print_writer.println( string );
 	}
 	
 	public void cmdLook( Chain< String > command ) {

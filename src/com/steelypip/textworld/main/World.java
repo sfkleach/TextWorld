@@ -1,5 +1,6 @@
 package com.steelypip.textworld.main;
 
+import java.io.PrintWriter;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.Map.Entry;
@@ -49,10 +50,11 @@ public class World {
 	}
 	
 	public void show() {
+		PrintWriter pw = this.getAvatar().getPrintWriter();
 		for ( Entry< String, GameObject > e : this.name_space.entrySet() ) {
-			System.err.print( "Variable " + e.getKey() + ": " );
-			System.err.print(  e.getValue().getClass().getName() );
-			System.err.println();
+			pw.print( "Variable " + e.getKey() + ": " );
+			pw.print(  e.getValue().getClass().getName() );
+			pw.println();
 		}
 	}
 

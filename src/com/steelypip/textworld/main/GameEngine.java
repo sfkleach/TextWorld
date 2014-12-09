@@ -1,5 +1,7 @@
 package com.steelypip.textworld.main;
 
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.Scanner;
 
 import org.eclipse.jdt.annotation.NonNull;
@@ -9,6 +11,7 @@ import com.steelypip.powerups.chain.Chain;
 public class GameEngine {
 	
 	final @NonNull World world;
+	boolean debugging = false;
 	
 	public GameEngine( @NonNull World world ) {
 		this.world = world;
@@ -16,6 +19,17 @@ public class GameEngine {
 	
 	public void showWorld() {
 		this.world.show();
+	}
+	
+	public void welcome() {
+		PrintWriter pw = this.world.getAvatar().getPrintWriter();
+		pw.println( "Welcome to TextWorld 0.1" );
+		pw.print( "Entering: " );
+		pw.println( this.getWorld().getName() );
+		pw.println();
+		if ( this.isDebugging() ) {
+			this.showWorld();
+		}
 	}
 
 	public void run( final ReadLine in_stream ) {
@@ -32,6 +46,15 @@ public class GameEngine {
 
 	public @NonNull World getWorld() {
 		return this.world;
+	}
+	
+
+	public boolean isDebugging() {
+		return debugging;
+	}
+
+	public void setDebugging( boolean debugging ) {
+		this.debugging = debugging;
 	}
 	
 }
