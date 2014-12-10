@@ -46,24 +46,29 @@ public class XHTMLRenderTemplate {
 	private @Nullable MinXML evalIf( MinXML expr, MinXML default_value ) {
 //		System.err.println( "Evaluating " + expr );
 		MinXML r = this.dereference( expr, default_value );
-		boolean is_null = ( 
-			r == null ||
-			( 
-				r.hasName( JSONKeywords.KEYS.CONSTANT ) &&
-				r.hasAttribute( JSONKeywords.KEYS.CONSTANT_TYPE, "null" )
-			)
-		);
-		final String field_value = is_null ? JSONKeywords.KEYS.IF_ELSE : JSONKeywords.KEYS.IF_THEN;
-//		System.err.println( "Field value " + field_value ); 
-		for ( MinXML kid : expr ) {
-//			if ( kid.hasAttribute( JSONKeywords.KEYS.FIELD ) ) {
-//				System.err.println( "Has field " + kid.getAttribute( JSONKeywords.KEYS.FIELD ) );
-//			}
-			if ( kid.hasAttribute( JSONKeywords.KEYS.FIELD, field_value ) ) {
-				return kid;
+		if ( expr.hasAttribute( JSONKeywords.KEYS.IF_TEST, JSONKeywords.KEYS.IF_TEST_OK ) ) {
+			boolean is_null = ( 
+				r == null ||
+				( 
+					r.hasName( JSONKeywords.KEYS.CONSTANT ) &&
+					r.hasAttribute( JSONKeywords.KEYS.CONSTANT_TYPE, "null" )
+				)
+			);
+			final String field_value = is_null ? JSONKeywords.KEYS.IF_ELSE : JSONKeywords.KEYS.IF_THEN;
+	//		System.err.println( "Field value " + field_value ); 
+			for ( MinXML kid : expr ) {
+				if ( kid.hasAttribute( JSONKeywords.KEYS.FIELD ) ) {	
+					if ( kid.hasAttribute( JSONKeywords.KEYS.FIELD, field_value ) ) {
+						return kid;
+					}
+				} else {
+					throw new Alert( "Field missing on branch of if" ).culprit( "Element", kid );
+				}
 			}
+			return null;
+		} else {
+			throw Alert.unimplemented();
 		}
-		return null;
 	}
 	
 	private void printAttribute( final String key, final String value ) {

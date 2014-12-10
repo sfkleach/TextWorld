@@ -31,6 +31,7 @@ public abstract class GameObject extends PropertyObject {
 	private String unique_id;
 	private ConstantActiveValue< String > name = new ConstantActiveValue< String >( this.getDefaultName() );
 	private ConstantActiveValue< String > summary = new ConstantActiveValue< String >( this.getDefaultName() );
+	private ConstantActiveValue< String > image = new ConstantActiveValue< String >( null );
 
 	public String getUid() {
 		return this.unique_id;
@@ -48,6 +49,10 @@ public abstract class GameObject extends PropertyObject {
 
 	public void setName( final String name ) {
 		this.name.set( name );
+	}
+	
+	public String getImage() {
+		return this.image.get();
 	}
 	
 	public String getSummary() {
@@ -74,6 +79,10 @@ public abstract class GameObject extends PropertyObject {
 	
 	public ActiveValue< ? extends Object > uidAsActiveValue() {
 		return this.newFieldActiveValue( "uid" );
+	}
+	
+	public ActiveValue< ? extends Object > imageAsActiveValue() {
+		return this.image;
 	}
 	
 	public void init( final String uid, final MinXML initial_configuration ) {

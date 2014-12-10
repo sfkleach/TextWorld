@@ -9,13 +9,12 @@
 		<if name="active" test="ok" {
 		then:
 			<div>
-				<if name="image" test="ok">
-					<img{ "src": image }/>
-				</if>
-				<pre>
-					welcome; 
-					response
-				</pre>
+				<pre> welcome </pre>
+				<if name="image" test="ok" {
+				then:
+					<img width="75%" height="auto" { "src": image }/>
+				}/>
+				<pre> response </pre>
 				<pre>
 					<p>
 						aboutLocation

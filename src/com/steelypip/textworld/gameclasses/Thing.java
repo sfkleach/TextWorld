@@ -12,10 +12,6 @@ public abstract class Thing extends GameObject {
 	}
 	
 	public void setLocation( final Thing place ) {
-//		System.out.print( "Setting the location of ... " );
-//		System.out.print( this );
-//		System.out.print( " to " );
-//		System.out.println( place );
 		final At at = this.getWorld().getAt();
 		at.setLocation( this, place );
 	}
@@ -52,14 +48,27 @@ public abstract class Thing extends GameObject {
 		);
 	}
 	
-
+	public void reportFirstImpression( final Turn turn ) {
+		turn.report( "You are " );
+		turn.report( this.containingPreposition() );
+		turn.report( ' ' );
+		turn.report( this.getSummary() );
+		turn.reportln( '.' );
+		turn.setRecentlySeenLocation();
+	}
 	
-	public void reportOnLook( final Avatar avatar ) {
-		avatar.report( "You are " );
-		avatar.report( this.containingPreposition() );
-		avatar.report( ' ' );
-		avatar.report( this.getName() );
-		avatar.reportln( '.' );
+	public void reportRepeatImpression( final Turn turn ) {
+		if ( ! turn.hasRecentlySeenLocation() ) {
+			turn.report( "You are " );
+			turn.report( this.containingPreposition() );
+			turn.report( ' ' );
+			turn.report( this.getName() );
+			turn.reportln( '.' );
+		}
+	}
+	
+	public void reportOnLook( final Turn turn ) {
+		this.reportFirstImpression( turn );
 	}
 	
 }

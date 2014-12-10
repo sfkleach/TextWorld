@@ -50,7 +50,7 @@ public class World {
 	}
 	
 	public void show() {
-		PrintWriter pw = this.getAvatar().getPrintWriter();
+		PrintWriter pw = new PrintWriter( System.err );
 		for ( Entry< String, GameObject > e : this.name_space.entrySet() ) {
 			pw.print( "Variable " + e.getKey() + ": " );
 			pw.print(  e.getValue().getClass().getName() );

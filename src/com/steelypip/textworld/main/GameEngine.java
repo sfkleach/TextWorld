@@ -1,53 +1,26 @@
 package com.steelypip.textworld.main;
 
-import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.util.Scanner;
 
 import org.eclipse.jdt.annotation.NonNull;
 
-import com.steelypip.powerups.chain.Chain;
+import com.steelypip.textworld.gameclasses.Turn;
 
-public class GameEngine {
+public abstract class GameEngine {
 	
+	public abstract void run();
+	
+	boolean debugging;
 	final @NonNull World world;
-	boolean debugging = false;
 	
-	public GameEngine( @NonNull World world ) {
+	public GameEngine( final @NonNull World world, final boolean debugging ) {
 		this.world = world;
+		this.debugging = debugging;
 	}
 	
-	public void showWorld() {
-		this.world.show();
+	public World getWorld() {
+		return world;
 	}
-	
-	public void welcome() {
-		PrintWriter pw = this.world.getAvatar().getPrintWriter();
-		pw.println( "Welcome to TextWorld 0.1" );
-		pw.print( "Entering: " );
-		pw.println( this.getWorld().getName() );
-		pw.println();
-		if ( this.isDebugging() ) {
-			this.showWorld();
-		}
-	}
-
-	public void run( final ReadLine in_stream ) {
-		while ( this.world.isActive() ) {
-			this.world.getAvatar().reportOnLocation();
-			final String line = in_stream.readLine();
-			if ( line == null ) break;
-			final Chain< String > command = Chain.newChain( new Scanner( line ) );
-			if ( command.isEmpty() ) continue;
-			if ( command.hasSingleMember( "exit" ) || command.hasSingleMember( "quit" ) ) break;
-			this.world.getAvatar().processCommand( command );
-		}
-	}
-
-	public @NonNull World getWorld() {
-		return this.world;
-	}
-	
 
 	public boolean isDebugging() {
 		return debugging;
@@ -56,5 +29,21 @@ public class GameEngine {
 	public void setDebugging( boolean debugging ) {
 		this.debugging = debugging;
 	}
+		
+	public void welcome( Turn turn ) {
+		PrintWriter pw = turn.getPrintWriter();
+		pw.println( "Welcome to TextWorld 0.1" );
+		pw.print( "Entering: " );
+		pw.println( this.getWorld().getName() );
+		pw.println();
+		if ( this.isDebugging() ) {
+			this.showWorld();
+		}
+	}
 	
+	public void showWorld() {
+		this.world.show();
+	}
+	
+
 }

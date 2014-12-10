@@ -1,15 +1,11 @@
 package com.steelypip.textworld.main;
 
-import java.awt.Desktop;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.InetSocketAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.LinkedList;
 
 import jline.ConsoleReader;
@@ -22,7 +18,6 @@ import com.steelypip.powerups.alert.Alert;
 import com.steelypip.powerups.shell.CmdArgs;
 import com.steelypip.powerups.shell.CmdOption;
 import com.steelypip.powerups.shell.StdCmdLineProcessor;
-import com.sun.net.httpserver.HttpServer;
 
 public class Main extends StdCmdLineProcessor {
 	
@@ -84,38 +79,26 @@ public class Main extends StdCmdLineProcessor {
 	}
 
 	private void runGameInWebMode() {
-		if ( ! Desktop.isDesktopSupported() ) {
-			throw new Alert( "Java desktop not supported" );
-		}
-
-		HttpServer server;
-		try {
-			server = HttpServer.create(new InetSocketAddress( 8001 ), 0 );
-		} catch ( IOException e ) {
-			throw new Alert( "Cannot bind to port 8001" );
-		}
-		server.createContext("/textworld", new GameHandler( server, new GameEngine( this.newWorld() ) ) );
-		server.createContext("/static", new StaticHandler() );
-		server.setExecutor( null ); // creates a default executor
-		server.start();
-		
-		try {
-			Desktop.getDesktop().browse( new URI( "http://localhost:8001/textworld" ) );
-		} catch ( IOException | URISyntaxException e ) {
-			throw new Alert( "Cannot open the default web browser" );
+		WebGameEngine console_game_engine = null;
+		try {	
+			console_game_engine = new WebGameEngine( this.newWorld(), this.debugging );
+			console_game_engine.run();
+		} catch ( Alert alert ) {
+			alert.report();
+			if ( console_game_engine == null || ! console_game_engine.isDebugging() ) {
+				throw alert;
+			}
 		}
 	}
 
-	public void runGameInConsoleMode() {
-		GameEngine game_engine = null;
+	private void runGameInConsoleMode() {
+		ConsoleGameEngine console_game_engine = null;
 		try {	
-			game_engine = new GameEngine( this.newWorld() );
-			game_engine.setDebugging( this.debugging );
-			game_engine.welcome();
-			game_engine.run( this.input );
+			console_game_engine = new ConsoleGameEngine( this.newWorld(), this.input, this.debugging );
+			console_game_engine.run();
 		} catch ( Alert alert ) {
 			alert.report();
-			if ( game_engine == null || ! game_engine.isDebugging() ) {
+			if ( console_game_engine == null || ! console_game_engine.isDebugging() ) {
 				throw alert;
 			}
 		}

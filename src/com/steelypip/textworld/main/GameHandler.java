@@ -23,6 +23,7 @@ import com.steelypip.powerups.minxml.FlexiMinXML;
 import com.steelypip.powerups.minxml.MinXML;
 import com.steelypip.powerups.minxson.MinXSONParser;
 import com.steelypip.powerups.minxson.templates.XHTMLRenderTemplate;
+import com.steelypip.textworld.gameclasses.Turn;
 import com.steelypip.textworld.gameclasses.loadable.Avatar;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -33,7 +34,7 @@ class GameHandler implements HttpHandler {
 	private static final String COMMAND = "command=";
 	
 	HttpServer http_server;
-	final GameEngine game_engine;
+	final WebGameEngine game_engine;
 	final World world;
 	final MinXML template;
 	boolean welcomed = false;
@@ -44,7 +45,7 @@ class GameHandler implements HttpHandler {
 		return template;
 	}
 	
-	public GameHandler( HttpServer http_server, GameEngine game_engine ) {
+	public GameHandler( HttpServer http_server, WebGameEngine game_engine ) {
 		this.http_server = http_server;
 		this.game_engine = game_engine;
 		this.world = game_engine.getWorld();
@@ -67,11 +68,11 @@ class GameHandler implements HttpHandler {
 		return minx;
 	}
 	
-	private @Nullable MinXML welcome( final Avatar avatar ) {
+	private @Nullable MinXML welcome( final Turn turn ) {
 		try ( StringPrintWriter pw = new StringPrintWriter() ) {
-			avatar.setPrintWriter( pw );
+			turn.setPrintWriter( pw );
 			if ( ! welcomed ) {
-				this.game_engine.welcome();
+				this.game_engine.welcome( turn );
 				this.welcomed = true;	
 				return newString( pw.toString() );
 			} else {
@@ -80,28 +81,29 @@ class GameHandler implements HttpHandler {
 		}
 	}
 	
-	private MinXML processCommand( Avatar avatar, final Chain< String > command ) {
+	private MinXML processCommand( Turn turn, final Chain< String > command ) {
 		try ( StringPrintWriter pw = new StringPrintWriter() ) {
-			avatar.setPrintWriter( pw );
-			avatar.processCommand( command );
+			turn.setPrintWriter( pw );
+			turn.processCommand( command );
 			return newString( pw.toString() );
 		}
 	}
 	
-	private MinXML reportOnLocation( Avatar avatar ) {
+	private MinXML reportOnLocation( Turn turn ) {
 		try ( StringPrintWriter pw = new StringPrintWriter() ) {
-			avatar.setPrintWriter( pw );
-			avatar.reportOnLocation();
+			turn.setPrintWriter( pw );
+			turn.reportOnLocation();
 			return newString( pw.toString() );
 		}
 	}
 	
-	private void message( final String command_line, PrintWriter pw ) {
+	private void executeCommand( final String command_line, PrintWriter pw ) {
 		Map< String, @Nullable MinXML > environment = new TreeMap<>();
 		Avatar avatar = world.getAvatar();
+		Turn turn = new Turn( avatar );
 		
 		environment.put( "version", newString( Main.getVersion() ) );
-		environment.put( "welcome", this.welcome( avatar ) );
+		environment.put( "welcome", this.welcome( turn ) );
 		environment.put( "response", null );
 		environment.put( "aboutLocation", null );
 		environment.put( "active", newBoolean( true ) );
@@ -114,7 +116,7 @@ class GameHandler implements HttpHandler {
 				environment.put( "active", null );
 			} else {
 				if ( command.isntEmpty() ) {
-					environment.put( "response", this.processCommand( avatar, command ) );
+					environment.put( "response", this.processCommand( turn, command ) );
 				}				
 			}
 		} catch ( Alert alert ) {
@@ -125,7 +127,8 @@ class GameHandler implements HttpHandler {
 		}
 
 		if ( this.world.isActive() ) {
-			environment.put( "aboutLocation", this.reportOnLocation( avatar ) );
+			environment.put( "aboutLocation", this.reportOnLocation( turn ) );
+			environment.put( "image", newString( avatar.getLocation().getImage() ) );
 		}
 		
 		new XHTMLRenderTemplate( pw, environment ).render( 
@@ -153,8 +156,8 @@ class GameHandler implements HttpHandler {
 	public void handle( HttpExchange http_exchange ) throws IOException {
 		http_exchange.sendResponseHeaders( 200, 0 );
 		try ( final PrintWriter pw = new PrintWriter( new OutputStreamWriter( http_exchange.getResponseBody() ) ) ) {
-			this.game_engine.getWorld().getAvatar().setPrintWriter( pw );
-			this.message( this.findCommand( http_exchange ), pw );
+//			this.game_engine.getWorld().getAvatar().setPrintWriter( pw );
+			this.executeCommand( this.findCommand( http_exchange ), pw );
 		}
 		if ( !this.world.isActive() ) {
 			final Timer timer = new Timer();
