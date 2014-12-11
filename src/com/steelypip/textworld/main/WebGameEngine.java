@@ -12,6 +12,8 @@ import com.steelypip.powerups.alert.Alert;
 import com.sun.net.httpserver.HttpServer;
 
 public class WebGameEngine extends GameEngine {
+	
+	public final static int port = 8002;
 
 	public WebGameEngine( @NonNull World world, boolean debugging ) {
 		super( world, debugging );
@@ -25,9 +27,9 @@ public class WebGameEngine extends GameEngine {
 
 		HttpServer server;
 		try {
-			server = HttpServer.create(new InetSocketAddress( 8001 ), 0 );
+			server = HttpServer.create(new InetSocketAddress( port ), 0 );
 		} catch ( IOException e ) {
-			throw new Alert( "Cannot bind to port 8001" );
+			throw new Alert( "Cannot bind to port" ).culprit( "Port", port );
 		}
 		server.createContext( "/textworld", new GameHandler( server, this ) );
 		server.createContext( "/static", new StaticHandler() );
@@ -35,7 +37,7 @@ public class WebGameEngine extends GameEngine {
 		server.start();
 		
 		try {
-			Desktop.getDesktop().browse( new URI( "http://localhost:8001/textworld" ) );
+			Desktop.getDesktop().browse( new URI( "http://localhost:" + port + "/textworld" ) );
 		} catch ( IOException | URISyntaxException e ) {
 			throw new Alert( "Cannot open the default web browser" );
 		}

@@ -98,6 +98,7 @@ class GameHandler implements HttpHandler {
 	}
 	
 	private void executeCommand( final String command_line, PrintWriter pw ) {
+		System.err.println( "Executing command ..." );
 		Map< String, @Nullable MinXML > environment = new TreeMap<>();
 		Avatar avatar = world.getAvatar();
 		Turn turn = new Turn( avatar );
@@ -134,6 +135,8 @@ class GameHandler implements HttpHandler {
 		new XHTMLRenderTemplate( pw, environment ).render( 
 			this.world.isActive() ? this.template : fetchTemplate( "bye.xson" ) 
 		);
+		
+		System.err.println( "... executed" );
 	}
 
 	String findCommand( HttpExchange http_exchange ) {
@@ -156,8 +159,12 @@ class GameHandler implements HttpHandler {
 	public void handle( HttpExchange http_exchange ) throws IOException {
 		http_exchange.sendResponseHeaders( 200, 0 );
 		try ( final PrintWriter pw = new PrintWriter( new OutputStreamWriter( http_exchange.getResponseBody() ) ) ) {
-//			this.game_engine.getWorld().getAvatar().setPrintWriter( pw );
-			this.executeCommand( this.findCommand( http_exchange ), pw );
+			try {
+				this.executeCommand( this.findCommand( http_exchange ), pw );
+			} catch ( Exception e ) {
+				System.err.println( "RUNTIME ERROR!" );
+				e.printStackTrace();
+			}
 		}
 		if ( !this.world.isActive() ) {
 			final Timer timer = new Timer();

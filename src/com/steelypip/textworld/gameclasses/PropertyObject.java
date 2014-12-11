@@ -9,7 +9,7 @@ import com.steelypip.powerups.alert.Alert;
 public class PropertyObject {
 
 	
-	public ActiveValue< ? extends Object > newFieldActiveValue( final String field_name ) {
+	public <T> ActiveValue< T > newFieldActiveValue( final String field_name ) {
 		Field f;
 		try {
 			f = this.getClass().getDeclaredField( field_name );
@@ -17,7 +17,7 @@ public class PropertyObject {
 			throw new Alert( "Cannot access field", e );
 		}
 		f.setAccessible( true );
-		return new FieldActiveValue< String >( this, f );
+		return new FieldProperty< T >( this, f );
 	}
 	
 	public Object get( final String key ) {
@@ -39,8 +39,9 @@ public class PropertyObject {
 		final String name = canonise( key );
 		try {
 			Method m = this.getClass().getMethod( name );
-			ActiveValue< ? > active_value = ( ActiveValue< ? > )m.invoke( this );
-			active_value.dynSet( value );
+			@SuppressWarnings("unchecked")
+			ActiveValue< ? extends Object > active_value = ( ActiveValue< ? extends Object > )m.invoke( this );
+			active_value.setDefinition( value );
 		} catch ( IllegalAccessException | IllegalArgumentException | InvocationTargetException e ) {
 			throw new Alert( "Problem invoking property method", e );
 		} catch ( SecurityException e ) {
@@ -51,7 +52,6 @@ public class PropertyObject {
 	}
 		
 	public void define( final String key, final Object value ) {
-//		System.out.println( "Defining " + key  );
 		final String name = canonise( key );
 		try {
 			Method m = this.getClass().getMethod( name );

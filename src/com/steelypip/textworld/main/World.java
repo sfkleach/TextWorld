@@ -1,6 +1,8 @@
 package com.steelypip.textworld.main;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.Map.Entry;
@@ -115,30 +117,59 @@ public class World {
 //			System.out.println( "key = " + key );
 //		}
 		return this.name_space.get( uid );
-	}	
+	}
 	
-	public Object convertFromMinXML( final MinXML field_value ) {
+	public Object evaluateMinXML( final MinXML field_value ) {
 //		field_value.prettyPrint( new OutputStreamWriter( System.out ) );
-		if ( field_value.hasName( JSONKeywords.KEYS.CONSTANT ) ) {
-			if ( field_value.hasAttribute( JSONKeywords.KEYS.CONSTANT_TYPE, JSONKeywords.KEYS.STRING ) ) {
+		final String interned = field_value.getInternedName();
+		if ( interned == JSONKeywords.KEYS.CONSTANT ) {
+			final String value = field_value.getAttribute( JSONKeywords.KEYS.CONSTANT_TYPE, null );
+			if ( value == null ) {
+				throw new Alert( "Malformed constant" ).hint( "Missing value attribute" );
+			} else if ( value.equals( JSONKeywords.KEYS.STRING ) ) {
 				return field_value.getAttribute( JSONKeywords.KEYS.CONSTANT_VALUE );
+			} else if ( value.equals(  JSONKeywords.KEYS.INTEGER ) ) {
+					return Long.parseLong( field_value.getAttribute( JSONKeywords.KEYS.CONSTANT_VALUE ) );
 			} else {
 				throw Alert.unimplemented( "Non-string field" );
  			}
-		} else if ( 
-			field_value.hasName( JSONKeywords.KEYS.ID ) && 
-			field_value.hasAttribute( JSONKeywords.KEYS.ID_NAME )
-		) {
-			final String variable = field_value.getAttribute( JSONKeywords.KEYS.ID_NAME );
-			final GameObject game_object = this.name_space.get( variable );
-			if ( game_object != null ) {
-				return game_object;
-			} else{
-				throw new Alert( "Reference to undefined variable" ).culprit( "Variable", variable );
+		} else if ( interned == JSONKeywords.KEYS.ID ) {
+			if ( field_value.hasAttribute( JSONKeywords.KEYS.ID_NAME ) ) {
+				final String variable = field_value.getAttribute( JSONKeywords.KEYS.ID_NAME );
+				final GameObject game_object = this.name_space.get( variable );
+				if ( game_object != null ) {
+					return game_object;
+				} else{
+					throw new Alert( "Reference to undefined variable" ).culprit( "Variable", variable );
+				}
+			} else {
+				throw new Alert( "Malformed ID" ).hint( "Missing name" );
 			}
+		} else if ( interned == "d6" ) {
+			return evaluateD6( field_value );
 		} else {
-			throw Alert.unimplemented( "Field not a constant or identifer" );
+			throw Alert.unimplemented( "Unrecognised expression" ).culprit( "Name", interned );
 		}
+	}
+	
+	
+	public Thunk evaluateD6( final MinXML expr ) {
+		final ArrayList< Object > keys = new ArrayList<>();
+		final ArrayList< Object > values = new ArrayList<>();
+		Object default_value = null;
+		
+		for ( MinXML kid : expr ) {
+			if ( kid.hasName( JSONKeywords.KEYS.TUPLE ) ) {
+				keys.add( this.evaluateMinXML( kid.get( 0 ) ) );
+				values.add( this.evaluateMinXML( kid.get( 1 ) ) );
+			} else {
+				default_value = this.evaluateMinXML( kid );
+			}
+		}
+		
+		keys.trimToSize();
+		values.trimToSize();
+		return new Dice( 6, keys, values, default_value );
 	}
 	
 }

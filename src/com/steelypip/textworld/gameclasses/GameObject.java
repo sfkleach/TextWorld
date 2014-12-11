@@ -29,9 +29,9 @@ public abstract class GameObject extends PropertyObject {
 
 
 	private String unique_id;
-	private ConstantActiveValue< String > name = new ConstantActiveValue< String >( this.getDefaultName() );
-	private ConstantActiveValue< String > summary = new ConstantActiveValue< String >( this.getDefaultName() );
-	private ConstantActiveValue< String > image = new ConstantActiveValue< String >( null );
+	private ActiveValue< Object > name = new ActiveValue.Slot< Object >( this.getDefaultName() );
+	private ActiveValue< Object > summary = new ActiveValue.Slot< Object >( this.getDefaultName() );
+	private ActiveValue< Object > image = new ActiveValue.Slot< Object >( null );
 
 	public String getUid() {
 		return this.unique_id;
@@ -44,7 +44,7 @@ public abstract class GameObject extends PropertyObject {
 	}
 	
 	public String getName() {
-		return this.name.get();
+		return this.name.getAsString( null );
 	}
 
 	public void setName( final String name ) {
@@ -52,11 +52,11 @@ public abstract class GameObject extends PropertyObject {
 	}
 	
 	public String getImage() {
-		return this.image.get();
+		return this.image.getAsString( null );
 	}
 	
 	public String getSummary() {
-		return this.summary.get();
+		return this.summary.getAsString( null );
 	}
 	
 	public void setSummary( final String name ) {
@@ -90,7 +90,7 @@ public abstract class GameObject extends PropertyObject {
 		for ( MinXML field_value : initial_configuration ) {
 			if ( field_value.hasAttribute( JSONKeywords.KEYS.FIELD ) ) {
 				try {
-					this.define( field_value.getAttribute( JSONKeywords.KEYS.FIELD ), this.world.convertFromMinXML( field_value ) );
+					this.define( field_value.getAttribute( JSONKeywords.KEYS.FIELD ), this.world.evaluateMinXML( field_value ) );
 				} catch ( Alert alert ) {
 					alert.report();
 				}

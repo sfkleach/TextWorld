@@ -44,6 +44,7 @@ public class Turn extends TurnReporter {
 	}
 	
 	public void reportOnLocation() {
+//		System.err.println( "Reporting on location" );
 		final Thing place = Objects.requireNonNull( this.avatar.getLocation() );
 		if ( this.avatar.hasLocationChanged( place ) ) {
 			place.reportFirstImpression( this );
@@ -101,7 +102,9 @@ public class Turn extends TurnReporter {
 		if ( command.hasSize( 1 ) ) {
 			final GameObject destination = this.findByUID( command.get( 0 ) );
 			if ( destination instanceof Place && destination != this.avatar ) {
-				this.getWorld().getAt().setLocation( this.avatar, (Place)destination );
+//				System.err.println( "Teleporting avatar ..." );
+				this.avatar.setLocation( (Place)destination );
+//				System.err.println( "... teleported" );
 			} else {
 				System.err.println( "Not the UID of a valid destination" );
 				System.err.println( "  * The UID was " + command.get( 0 ) );

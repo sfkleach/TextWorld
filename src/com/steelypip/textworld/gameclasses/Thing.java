@@ -28,20 +28,15 @@ public abstract class Thing extends GameObject {
 	public ActiveValue< ? extends Object > spawnsAtAsActiveValue() {
 		return (
 			new ActiveValue< Thing >() {
-
+	
 				@Override
 				public Thing get() {
 					return Thing.this.getLocation();
 				}
-
+	
 				@Override
 				public void set( Thing place ) {
 					Thing.this.setLocation( place );
-				}
-
-				@Override
-				public void setDefinition( Object definition ) {
-					Thing.this.setLocation( (Thing)definition );
 				}
 				
 			}

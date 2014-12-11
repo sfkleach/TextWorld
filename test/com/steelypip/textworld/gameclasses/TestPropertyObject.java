@@ -4,7 +4,6 @@ import static org.junit.Assert.*;
 
 import com.steelypip.powerups.minxml.FlexiMinXMLBuilder;
 import com.steelypip.powerups.minxml.MinXMLBuilder;
-import com.steelypip.textworld.gameclasses.ConstantActiveValue;
 import com.steelypip.textworld.main.World;
 
 import org.junit.Test;
@@ -12,7 +11,7 @@ import org.junit.Test;
 public class TestPropertyObject {
 
 	static class Basic extends PropertyObject {
-		ConstantActiveValue< String > x = new ConstantActiveValue<>( "foo" );
+		ActiveValue.Slot< String > x = new ActiveValue.Slot<>( "foo" );
 		public ActiveValue< String > fooAsActiveValue() { 
 			return x;
 		}
@@ -39,7 +38,7 @@ public class TestPropertyObject {
 		b.put( "type", "string" );
 		b.put( "value", "gamma" );
 		b.endTag( null );
-		object.define( "foo", b.build() );
+		object.define( "foo", new World().evaluateMinXML( b.build() ) );
 		assertEquals( "gamma", object.get( "foo" ) );
 	}
 	

@@ -4,12 +4,12 @@ import java.lang.reflect.Field;
 
 import com.steelypip.powerups.alert.Alert;
 
-public class FieldActiveValue< T > implements ActiveValue< T > {
+public class FieldProperty< T > implements ActiveValue< T > {
 	
 	Object subject;
 	Field field;
 	
-	public FieldActiveValue( Object subject, Field field ) {
+	public FieldProperty( Object subject, Field field ) {
 		this.subject = subject;
 		this.field = field;
 	}
@@ -31,12 +31,6 @@ public class FieldActiveValue< T > implements ActiveValue< T > {
 		} catch ( IllegalArgumentException | IllegalAccessException e ) {
 			throw new Alert( "Trying to access protected field", e );
 		}
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public void setDefinition( Object definition ) {
-		this.set( (T)definition );
 	}
 
 }
