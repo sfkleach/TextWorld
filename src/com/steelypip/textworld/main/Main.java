@@ -7,6 +7,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.LinkedList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import jline.ConsoleReader;
 import jline.ConsoleReaderInputStream;
@@ -29,11 +31,13 @@ public class Main extends StdCmdLineProcessor {
 		WEB
 	} 
 	
-	Mode mode = Mode.CONSOLE;
-	boolean debugging = false;
-	boolean gamemaster = false;
-	ReadLine input = () -> System.console().readLine( "> " );
-	LinkedList< File > files = new LinkedList<>();
+	private Mode mode = Mode.CONSOLE;
+	private boolean debugging = false;
+	private boolean gamemaster = false;
+	private ReadLine input = () -> System.console().readLine( "> " );
+	private LinkedList< File > files = new LinkedList<>();
+	
+	static Logger logger = Logger.getLogger( "com.steelypip.textworld" );
 	
 	public static void main( String[] args ) {
 		new Main().run( args );
@@ -49,6 +53,7 @@ public class Main extends StdCmdLineProcessor {
 	
 	void run( String[] args ) {
 		this.processCmdLineArgs( args );
+		logger.setLevel( this.debugging ? Level.INFO : Level.WARNING );
 		switch ( mode ) {
 		case ERROR:
 			this.printUsage( System.err );

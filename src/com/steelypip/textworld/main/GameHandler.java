@@ -1,13 +1,17 @@
 package com.steelypip.textworld.main;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -25,6 +29,7 @@ import com.steelypip.powerups.minxson.MinXSONParser;
 import com.steelypip.powerups.minxson.templates.XHTMLRenderTemplate;
 import com.steelypip.textworld.gameclasses.Turn;
 import com.steelypip.textworld.gameclasses.loadable.Avatar;
+import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -140,6 +145,8 @@ class GameHandler implements HttpHandler {
 	}
 
 	String findCommand( HttpExchange http_exchange ) {
+
+		
 		final String query = http_exchange.getRequestURI().getRawQuery();
 		if ( query != null ) {
 			for ( String binding : query.split( "&" ) ) {
@@ -155,6 +162,26 @@ class GameHandler implements HttpHandler {
 		return null;
 	}
 	
+	
+//	public void testDecodePOST( HttpExchange http_exchange ) {
+//		System.err.println( "Protocol : " + http_exchange.getProtocol() );
+//		System.err.println( "Method   : " + http_exchange.getRequestMethod() );
+//		for( Entry< String, List< String >> e : http_exchange.getRequestHeaders().entrySet() ) {
+//			System.err.println( "Key " + e.getKey() + ", Value = " + e.getValue() );
+//		}
+//		InputStream is = http_exchange.getRequestBody();
+//		try ( BufferedReader r = new BufferedReader( new InputStreamReader( is ) ) ) {
+//			for (;;) {
+//				String line = r.readLine();
+//				if ( line == null ) break;
+//				System.err.println( line );
+//			}
+//		} catch ( IOException e1 ) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+//	}
+
 	@Override
 	public void handle( HttpExchange http_exchange ) throws IOException {
 		http_exchange.sendResponseHeaders( 200, 0 );

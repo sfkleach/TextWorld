@@ -30,4 +30,5 @@ public abstract class TurnReporter {
 		this.getPrintWriter().println( string );
 	}
 
+
 }

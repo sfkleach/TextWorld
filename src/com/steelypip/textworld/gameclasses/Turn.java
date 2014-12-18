@@ -8,6 +8,7 @@ import com.steelypip.powerups.chain.Chain;
 import com.steelypip.powerups.io.StringPrintWriter;
 import com.steelypip.textworld.gameclasses.loadable.Avatar;
 import com.steelypip.textworld.gameclasses.loadable.Place;
+import com.steelypip.textworld.main.Reportable;
 import com.steelypip.textworld.main.World;
 
 public class Turn extends TurnReporter {
@@ -135,6 +136,16 @@ public class Turn extends TurnReporter {
 		System.err.println( "       !teleport <T:uid> [to] <L:uid> - teleports thing T to location L" );
 	}
 
-
+	public void report( final Object object ) {
+		if ( object == null ) {
+			//	Skip. This is probably what we want.
+		} else if ( object instanceof String ) {
+			this.getPrintWriter().print( object );
+		} else if ( object instanceof Reportable ) {
+			( ( Reportable )object ).report( this );
+		} else {
+			this.report( object.toString() );
+		}
+	}
 
 }

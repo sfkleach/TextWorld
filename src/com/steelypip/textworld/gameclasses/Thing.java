@@ -49,6 +49,11 @@ public abstract class Thing extends GameObject {
 		turn.report( ' ' );
 		turn.report( this.getSummary() );
 		turn.reportln( '.' );
+		for ( GameObject fixture : this.fixtures ) {
+			if ( fixture instanceof Thing ) {
+				((Thing)fixture).reportFirstImpression( turn );
+			}
+		}
 		turn.setRecentlySeenLocation();
 	}
 	

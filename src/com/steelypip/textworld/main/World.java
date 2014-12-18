@@ -145,6 +145,12 @@ public class World {
 			} else {
 				throw new Alert( "Malformed ID" ).hint( "Missing name" );
 			}
+		} else if ( interned == JSONKeywords.KEYS.ARRAY ) {
+			final ArrayList< Object > result = new ArrayList<>();
+			for ( MinXML kid : field_value ) {
+				result.add( this.evaluateMinXML( kid ) );
+			}
+			return result;
 		} else if ( interned == "d6" ) {
 			return evaluateD6( field_value );
 		} else {

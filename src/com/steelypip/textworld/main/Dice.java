@@ -25,10 +25,10 @@ public class Dice extends Thunk {
 	@Override
 	public Object evaluate() {
 		final long n = this.roll();
-		System.err.println( "We rolled " + n );
+//		System.err.println( "We rolled " + n );
 		int i = 0;
 		for ( Object key : this.keys ) {
-			System.err.println( "Comparing against " + key );
+//			System.err.println( "Comparing against " + key );
 			if ( key.equals( n ) ) {
 				return this.values.get( i );
 			}

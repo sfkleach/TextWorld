@@ -3,21 +3,38 @@ package com.steelypip.textworld.gameclasses;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.logging.Logger;
 
 import com.steelypip.powerups.alert.Alert;
 
 public class PropertyObject {
-
 	
-	public <T> ActiveValue< T > newFieldActiveValue( final String field_name ) {
+	static Logger logger = Logger.getLogger( PropertyObject.class.getName() );
+	
+	private <T> ActiveValue< T > newFieldActiveValue( final Class< ? > cuclass, final String field_name ) {
+		if ( cuclass == null ) {
+			throw new Alert( "Cannot find field" );
+		} else {
+			logger.info( "Looking in class " + cuclass.getName() + " for " + field_name );
+		}
 		Field f;
 		try {
-			f = this.getClass().getDeclaredField( field_name );
-		} catch ( NoSuchFieldException | SecurityException e ) {
+			f = cuclass.getDeclaredField( field_name );
+			f.setAccessible( true );
+			return new FieldProperty< T >( this, f );
+		} catch ( NoSuchFieldException e ) {
+			return this.newFieldActiveValue( cuclass.getSuperclass(), field_name );
+		} catch ( SecurityException e ) {
 			throw new Alert( "Cannot access field", e );
 		}
-		f.setAccessible( true );
-		return new FieldProperty< T >( this, f );
+	}
+	
+	public <T> ActiveValue< T > newFieldActiveValue( final String field_name ) {
+		try {
+			return this.newFieldActiveValue( this.getClass(), field_name );
+		} catch ( Alert e ) {
+			throw e.culprit( "Class name", this.getClass().getName() ).culprit( "Field", field_name );
+		}
 	}
 	
 	public Object get( final String key ) {
@@ -28,7 +45,8 @@ public class PropertyObject {
 			ActiveValue< ? extends Object > active_value = (ActiveValue< ? extends Object > )m.invoke( this );
 			return active_value.get();
 		} catch ( IllegalAccessException | IllegalArgumentException | InvocationTargetException e ) {
-			throw new Alert( "Problem invoking property method", e );
+
+			throw new Alert( "Get - problem invoking property method", e );
 		} catch ( NoSuchMethodException | SecurityException e ) {
 			throw new Alert( "No such property" ).culprit( "Property name", key ).culprit( "Method name", name ).culprit( "Object", this );
 		}
@@ -43,7 +61,7 @@ public class PropertyObject {
 			ActiveValue< ? extends Object > active_value = ( ActiveValue< ? extends Object > )m.invoke( this );
 			active_value.setDefinition( value );
 		} catch ( IllegalAccessException | IllegalArgumentException | InvocationTargetException e ) {
-			throw new Alert( "Problem invoking property method", e );
+			throw new Alert( "Set - problem invoking property method", e );
 		} catch ( SecurityException e ) {
 			throw new Alert( "Property access denied", e ).culprit( "Property name", key ).culprit( "Method name", name ).culprit( "Object", this );
 		} catch ( NoSuchMethodException e ) {
@@ -59,7 +77,8 @@ public class PropertyObject {
 			ActiveValue< Object > active_value = ( ActiveValue< Object > )m.invoke( this );
 			active_value.setDefinition( value );
 		} catch ( IllegalAccessException | IllegalArgumentException | InvocationTargetException e ) {
-			throw new Alert( "Problem invoking property method", e );
+//			e.printStackTrace();
+			throw new Alert( "Define - problem invoking property method", e );
 		} catch ( SecurityException e ) {
 			throw new Alert( "Property access denied", e ).culprit( "Property name", key ).culprit( "Method name", name ).culprit( "Object", this );
 		} catch ( NoSuchMethodException e ) {

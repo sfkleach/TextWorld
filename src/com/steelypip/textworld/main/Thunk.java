@@ -1,13 +1,15 @@
 package com.steelypip.textworld.main;
 
-public abstract class Thunk implements AsString {
+import com.steelypip.textworld.gameclasses.Turn;
+
+public abstract class Thunk implements Reportable {
 	
 	public abstract Object evaluate();
 
 	@Override
-	public String asString() {
+	public void report( Turn turn ) {
 		final Object r = this.evaluate();
-		return r != null ? r.toString() : null;
+		turn.report( r );
 	}
 		
 	

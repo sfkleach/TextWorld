@@ -25,5 +25,10 @@
 				</pre>
 			</div>
 		}/>
+		
+		<form method="POST">
+			<input type="hidden" name="Secret" value="This &amp; that = and the other"/>
+			<input type="submit" name="OK"/>
+		</form>
 	</body>
 </html>

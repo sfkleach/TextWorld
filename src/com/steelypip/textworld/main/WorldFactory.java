@@ -5,6 +5,7 @@ import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.eclipse.jdt.annotation.NonNull;
 
@@ -18,6 +19,8 @@ import com.steelypip.textworld.gameclasses.loadable.Avatar;
 import com.steelypip.textworld.gameclasses.loadable.Limbo;
 
 public class WorldFactory {
+	
+	static Logger logger = Logger.getLogger( WorldFactory.class.getName() );
 	
 	static class Initialisation {
 		GameObject game_object;
@@ -36,7 +39,7 @@ public class WorldFactory {
 		}
 
 		public void init() {
-			System.out.println( "Initialisation for " + file_name );
+			logger.info(  "Initialisation for " + file_name );
 			game_object.init( this.uid,  minx );
 		}
 	}

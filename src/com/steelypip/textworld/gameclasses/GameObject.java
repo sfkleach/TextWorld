@@ -1,5 +1,8 @@
 package com.steelypip.textworld.gameclasses;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import com.steelypip.powerups.alert.Alert;
 import com.steelypip.powerups.json.JSONKeywords;
 import com.steelypip.powerups.minxml.MinXML;
@@ -8,6 +11,7 @@ import com.steelypip.textworld.main.World;
 public abstract class GameObject extends PropertyObject {
 	
 	protected World world;
+	public List< GameObject > fixtures = new LinkedList<>();
 
 	public GameObject() {
 	}
@@ -43,23 +47,27 @@ public abstract class GameObject extends PropertyObject {
 		return last_dot == -1 ? name : name.substring( last_dot + 1 ); 
 	}
 	
-	public String getName() {
-		return this.name.getAsString( null );
+	public Object getName() {
+		return this.name.get();
 	}
 
-	public void setName( final String name ) {
+	public void setName( final Object name ) {
 		this.name.set( name );
 	}
 	
 	public String getImage() {
-		return this.image.getAsString( null );
+		return (String)this.image.get();
 	}
 	
-	public String getSummary() {
-		return this.summary.getAsString( null );
+	public void setImage( final String string ) {
+		this.image.set( string );
 	}
 	
-	public void setSummary( final String name ) {
+	public Object getSummary() {
+		return this.summary.get();
+	}
+	
+	public void setSummary( final Object name ) {
 		this.summary.set( name );
 	}
 	
@@ -83,6 +91,10 @@ public abstract class GameObject extends PropertyObject {
 	
 	public ActiveValue< ? extends Object > imageAsActiveValue() {
 		return this.image;
+	}
+	
+	public ActiveValue< ? extends Object > fixturesAsActiveValue() {
+		return this.newFieldActiveValue( "fixtures" );
 	}
 	
 	public void init( final String uid, final MinXML initial_configuration ) {
