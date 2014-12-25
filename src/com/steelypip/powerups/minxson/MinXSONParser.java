@@ -65,6 +65,7 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 	private boolean TYPE_PREFIX_EXTENSION = false;
 	private boolean TUPLE_EXTENSION = false;
 	private boolean FIELD_EXTENSION = false;
+	private boolean INDEX_EXTENSION = false;
 	
 	/**
 	 * These extensions toggle optional features.
@@ -77,8 +78,8 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 	 * @return the parser, used for method chaining 
 	 */
 	public MinXSONParser enableExtensions( char[] extensions ) {
+		boolean all = false;
 		for ( char ch : extensions ) {
-			boolean all = false;
 			switch ( ch ) {
 			case 'A': 
 				all = true;
@@ -87,6 +88,9 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 				if ( !all ) break;
 			case 'F':
 				FIELD_EXTENSION = true;
+				if ( !all ) break;
+			case 'I':
+				INDEX_EXTENSION = true;
 				if ( !all ) break;
 			case 'T': 
 				TYPE_PREFIX_EXTENSION = true; 
@@ -761,7 +765,23 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 		} else if ( identifier.equals( "null" ) ) {
 			this.parseConstant( identifier, json_keys.NULLEAN );
 		} else {
-			parseId( identifier );
+			if ( this.INDEX_EXTENSION ) {
+				this.eatWhiteSpace();
+				if ( this.tryReadChar( '[' ) ) {
+					this.startTagOpen( "indexByPosition" );
+					this.startTagClose( "indexByPosition" );
+					this.startTagOpen( json_keys.ID );
+					this.put( json_keys.ID_NAME, identifier );
+					this.startTagClose( json_keys.ID );
+					this.startTagClose( json_keys.ID );
+					this.readExpr();
+					this.endTag( "indexByPosition" );
+				} else {
+					parseId( identifier );
+				}
+			} else {
+				parseId( identifier );
+			}
 		}
 	}
 
@@ -845,6 +865,15 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 		}		
 	}
 	
+	private void readExpr() {
+		while ( this.readOneTag() ) {
+			if ( this.isAtTopLevel() ) break;
+		}
+		if ( ! this.isAtTopLevel() ) {
+			throw new Alert( "Unexpected end of input" );
+		}		
+	}
+	
 	/**
 	 * Reads a MinXSON expression off the input and returns a MinXML object.
 	 * 
@@ -852,12 +881,7 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 	 */
 	public MinXML read() {
 		try {
-			while ( this.readOneTag() ) {
-				if ( this.isAtTopLevel() ) break;
-			}
-			if ( ! this.isAtTopLevel() ) {
-				throw new Alert( "Unexpected end of input" );
-			}
+			this.readExpr();
 			return parent.build( null );
 		} catch ( Alert alert ) {
 			if ( this.line_number != null ) {

@@ -27,6 +27,7 @@
 		}/>
 		
 		<form method="POST">
+			"Extra form: ",
 			<input type="hidden" name="Secret" value="This &amp; that = and the other"/>
 			<input type="submit" name="OK"/>
 		</form>

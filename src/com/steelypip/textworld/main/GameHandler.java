@@ -1,17 +1,14 @@
 package com.steelypip.textworld.main;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -22,21 +19,18 @@ import org.eclipse.jdt.annotation.Nullable;
 import com.steelypip.powerups.alert.Alert;
 import com.steelypip.powerups.chain.Chain;
 import com.steelypip.powerups.io.StringPrintWriter;
-import com.steelypip.powerups.json.JSONKeywords;
-import com.steelypip.powerups.minxml.FlexiMinXML;
 import com.steelypip.powerups.minxml.MinXML;
-import com.steelypip.powerups.minxson.MinXSONParser;
 import com.steelypip.powerups.minxson.templates.XHTMLRenderTemplate;
 import com.steelypip.textworld.gameclasses.Turn;
 import com.steelypip.textworld.gameclasses.loadable.Avatar;
-import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
-class GameHandler implements HttpHandler {
+class GameHandler extends WikiPage implements HttpHandler {
 	
-	private static final String COMMAND = "command=";
+
+	private static final String COMMAND = "command";
 	
 	HttpServer http_server;
 	final WebGameEngine game_engine;
@@ -44,33 +38,11 @@ class GameHandler implements HttpHandler {
 	final MinXML template;
 	boolean welcomed = false;
 
-	private MinXML fetchTemplate( final String page_name ) {
-		Reader reader = new InputStreamReader( this.getClass().getResourceAsStream( page_name ) );
-		MinXML template = new MinXSONParser( reader, 'E' ).read();
-		return template;
-	}
-	
 	public GameHandler( HttpServer http_server, WebGameEngine game_engine ) {
 		this.http_server = http_server;
 		this.game_engine = game_engine;
 		this.world = game_engine.getWorld();
 		this.template = fetchTemplate( "page.xson" );
-	}
-	
-	
-	
-	private MinXML newString( final String text ) {
-		final MinXML minx = new FlexiMinXML( JSONKeywords.KEYS.CONSTANT );
-		minx.putAttribute( JSONKeywords.KEYS.CONSTANT_TYPE, JSONKeywords.KEYS.STRING );
-		minx.putAttribute( JSONKeywords.KEYS.CONSTANT_VALUE, text );
-		return minx;
-	}
-	
-	private MinXML newBoolean( final boolean value ) {
-		final MinXML minx = new FlexiMinXML( JSONKeywords.KEYS.CONSTANT );
-		minx.putAttribute( JSONKeywords.KEYS.CONSTANT_TYPE, JSONKeywords.KEYS.BOOLEAN );
-		minx.putAttribute( JSONKeywords.KEYS.CONSTANT_VALUE, JSONKeywords.KEYS.BOOLEAN_TRUE );
-		return minx;
 	}
 	
 	private @Nullable MinXML welcome( final Turn turn ) {
@@ -103,10 +75,9 @@ class GameHandler implements HttpHandler {
 	}
 	
 	private void executeCommand( final String command_line, PrintWriter pw ) {
-		System.err.println( "Executing command ..." );
-		Map< String, @Nullable MinXML > environment = new TreeMap<>();
-		Avatar avatar = world.getAvatar();
-		Turn turn = new Turn( avatar );
+		final Map< String, @Nullable MinXML > environment = new TreeMap<>();
+		final Avatar avatar = world.getAvatar();
+		final Turn turn = new Turn( avatar );
 		
 		environment.put( "version", newString( Main.getVersion() ) );
 		environment.put( "welcome", this.welcome( turn ) );
@@ -141,49 +112,19 @@ class GameHandler implements HttpHandler {
 			this.world.isActive() ? this.template : fetchTemplate( "bye.xson" ) 
 		);
 		
-		System.err.println( "... executed" );
+//		System.err.println( "... executed" );
 	}
-
+	
 	String findCommand( HttpExchange http_exchange ) {
-
-		
-		final String query = http_exchange.getRequestURI().getRawQuery();
-		if ( query != null ) {
-			for ( String binding : query.split( "&" ) ) {
-				if ( binding.startsWith( COMMAND ) ) {
-					try {
-						return URLDecoder.decode( binding.substring( COMMAND.length() ), "UTF-8" );
-					} catch ( UnsupportedEncodingException e ) {
-						throw Alert.unreachable();
-					}
-				}
-			}
-		}
-		return null;
+		Map< String, List< String > > data = unpackRequestFields( http_exchange );
+		if ( data == null ) return null;
+		final List< String > values = data.get( COMMAND );
+		return values == null || values.isEmpty() ? null : values.get( 0 );
 	}
-	
-	
-//	public void testDecodePOST( HttpExchange http_exchange ) {
-//		System.err.println( "Protocol : " + http_exchange.getProtocol() );
-//		System.err.println( "Method   : " + http_exchange.getRequestMethod() );
-//		for( Entry< String, List< String >> e : http_exchange.getRequestHeaders().entrySet() ) {
-//			System.err.println( "Key " + e.getKey() + ", Value = " + e.getValue() );
-//		}
-//		InputStream is = http_exchange.getRequestBody();
-//		try ( BufferedReader r = new BufferedReader( new InputStreamReader( is ) ) ) {
-//			for (;;) {
-//				String line = r.readLine();
-//				if ( line == null ) break;
-//				System.err.println( line );
-//			}
-//		} catch ( IOException e1 ) {
-//			// TODO Auto-generated catch block
-//			e1.printStackTrace();
-//		}
-//	}
 
 	@Override
 	public void handle( HttpExchange http_exchange ) throws IOException {
+//		this.testDecodePOST( http_exchange );
 		http_exchange.sendResponseHeaders( 200, 0 );
 		try ( final PrintWriter pw = new PrintWriter( new OutputStreamWriter( http_exchange.getResponseBody() ) ) ) {
 			try {
