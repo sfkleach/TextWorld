@@ -18,7 +18,7 @@
  */
 package com.steelypip.powerups.minxml;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.NoSuchElementException;
 
 import org.eclipse.jdt.annotation.NonNull;
@@ -37,11 +37,16 @@ import com.steelypip.powerups.alert.Alert;
 public class FlexiMinXMLBuilder implements MinXMLBuilder {
 
 	private @NonNull FlexiMinXML current_element = new FlexiMinXML( "DUMMY_NODE" );
-	private final LinkedList< @NonNull FlexiMinXML > element_stack = new LinkedList<>();
+	private final ArrayList< @NonNull FlexiMinXML > element_stack = new ArrayList<>();
+	
+	@Override
+	public int nestingLevel() {
+		return this.element_stack.size();
+	}
 
 	@Override
 	public void startTagOpen( String name ) {
-		element_stack.addLast( current_element );
+		element_stack.add( current_element );
 		this.current_element = new FlexiMinXML( name != null ? name : "" );
 	}
 
@@ -70,7 +75,7 @@ public class FlexiMinXMLBuilder implements MinXMLBuilder {
 		this.bindName( name );
 		this.current_element.trimToSize();
 		try {
-			final FlexiMinXML b2 = element_stack.removeLast();
+			final FlexiMinXML b2 = element_stack.remove( this.element_stack.size() - 1 );
 			b2.add( this.current_element );
 			this.current_element = b2;
 		} catch ( NoSuchElementException e ) {

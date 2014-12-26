@@ -75,6 +75,11 @@ class StdSurfaceSyntax implements SurfaceSyntax {
 	}
 
 	@Override
+	public boolean isCloseObjectChar( final char ch ) {
+		return ch == '}';
+	}
+
+	@Override
 	public boolean isCloseParenthesis( final char ch ) {
 		return ch == ')';
 	}

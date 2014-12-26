@@ -21,7 +21,7 @@ package com.steelypip.powerups.minxson;
 
 import java.util.TreeMap;
 
-public class Lookup {
+public class CharacterEntityLookup {
 	public static Character lookup( final String name ) {
 		return table.get( name );
 	}

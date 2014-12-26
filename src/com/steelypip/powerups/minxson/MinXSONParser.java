@@ -47,10 +47,10 @@ import com.steelypip.powerups.minxml.MinXMLBuilder;
  * It can either be used to read individual expressions one by one off the input 
  * or it can be turned into an iterator and used in a loop. 
  */
-public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
+public class MinXSONParser implements Iterable< MinXML > {
 	
 	private static final String TYPE_ATTRIBUTE_PREFIX = "@";
-	private static final char FIELD_ATTRIBUTE_SUFFIX = ':';
+//	private static final char FIELD_ATTRIBUTE_SUFFIX = ':';
 
 	protected JSONKeywords json_keys = JSONKeywords.KEYS;
 	protected SurfaceSyntax surface_syntax;
@@ -251,7 +251,7 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 			final char ch = this.cucharin.peekChar();
 			if ( ch == '#' ) {
 				this.cucharin.skipChar();
-				if ( this.peekChar( '\0' ) == '!' && this.isAtTopLevel() ) {
+				if ( this.peekChar( '\0' ) == '!' && this.parent.isAtNestingLevel( 0 ) ) {
 					//	Shebang - note that this is coded quite carefully to leave 
 					//	the options open for other interpretations of #.
 					this.cucharin.skipUntil( '\n' );
@@ -321,7 +321,7 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 	}
 	
 	private char entityLookup( final String symbol ) {
-		Character c = Lookup.lookup( symbol );
+		Character c = CharacterEntityLookup.lookup( symbol );
 		if ( c != null ) {
 			return c;
 		} else {
@@ -363,41 +363,6 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 	}	
 
 	
-	private void processAttributes() {
-		for (;;) {
-			this.eatWhiteSpace();
-			char c = peekChar();
-			if ( c == '/' || c == '>' || this.surface_syntax.isOpenArrayChar( c ) || c == '{'  ) break;
-			final String key = this.readName();
-			
-			this.eatWhiteSpace();
-			final int n = this.mustReadOneOf( "=:" );
-			this.eatWhiteSpace();
-			final String value = n == 0 ? this.readAttributeValue() : this.readJSONStringText();
-			this.put( key, value );
-		}
-	}
-	
-	private boolean readOneTag() {		
-		if ( this.hasPendingTag() ) {
-			final boolean was_in_element = this.isInElement();
-			this.endTag( this.popTag() );
-			if ( this.isntAtTopLevel() ) {
-				this.setExpectingTerminator( was_in_element );
-			}
-			return true;
-		} else if ( this.isExpectingTerminator() ) {
-			this.consumeOptionalTerminator();
-		}
-		this.eatWhiteSpace();
-		if ( this.cucharin.hasNextChar() ){
-			this.readWithoutPending();
-			return true;
-		} else {
-			return false;
-		}
-	}
-	
 	void consumeOptionalTerminator() {
 		// End of input is a valid terminator!
 		while ( this.cucharin.hasNextChar() ) {
@@ -409,22 +374,13 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 				this.discardChar();
 				continue;
 			} else if ( ch == '<' ) {
-				//	No need for terminators between tags.
-				if ( this.wasInElement() ) break;
-				//	No need for a terminator if the next token is a end-tag.
-				// 	If it is a start-tag it is illegal. 
-				if ( this.tryPeekString( "</" ) || this.tryPeekString( "<?" ) || this.tryPeekString( "<!" ) ) {
-					//	We accept a processing directive as a separator.
-					break;
-				}
-				throw new Alert( "Missing separator before '<'" ).culprit( "At character", ch );
-			} else if ( this.surface_syntax.isCloseArrayChar( ch ) || ch == '}' /* || ch == ')' */ ) {
+				break;
+			} else if ( this.surface_syntax.isCloseChar( ch ) ) {
 				break;
 			} else {
 				throw new Alert( "Unexpected character whilst looking for separator/terminator" ).culprit( "Character", ch );
 			}
 		}
-		this.unsetExpectingTerminator();
 	}
 
 	private void discardXMLComment( final char ch ) {
@@ -471,13 +427,18 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 		return c == '/' || c == '>' || this.surface_syntax.isOpenArrayChar( c ) || c == '{';
 	}
 
-	private void readExtraAttributes( final String initial_key ) {
+	/**
+	 * Consumes a sequence of attributes and any subsequent whitespace.
+	 */
+	private Map< String, String > readExtraAttributes( final String initial_key ) {
+		Map< String, String > attributes = new TreeMap<>();
 		String initial_value = this.readAttributeValue();
-		this.extra_attributes.put( initial_key, initial_value );
+		attributes.put( initial_key, initial_value );
+//		this.extra_attributes.put( initial_key, initial_value );
 		for (;;) {
 			this.eatWhiteSpace();
 			final char c = peekChar();
-			if ( charEndsAttributes( c ) ) {
+			if ( this.charEndsAttributes( c ) ) {
 				break;
 			}
 			String key = this.readName();
@@ -485,131 +446,35 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 			this.mustReadChar( '=' );
 			this.eatWhiteSpace();
 			final String value = readAttributeValue();
-			this.extra_attributes.put(  key,  value  );
+			attributes.put(  key,  value  );
 		}
-	}
-	
-	private void readEndTag() {
-		if ( this.isInElement() ) {
-			this.discardChar();
-			this.eatWhiteSpace();
-			if ( this.tryReadChar( '>' ) ) {
-				this.endTag( this.popTag( '\0' ) );
-			} else {
-				String end_tag = this.readName();
-				this.eatWhiteSpace();
-				this.mustReadChar( '>' );
-				this.mustPopTag( end_tag );
-				this.endTag( end_tag );
-			}
-			if ( this.isntAtTopLevel() ) {
-				this.setExpectingTerminator( true );
-			}
-			return;
-		} else {
-			throw new Alert( "Unexpected end-tag" ).note( "Not inside an element" );
-		}		
+		return attributes;
 	}
 	
 	public void readNamelessStartTag( String name ) {
 		//	We have attributes without an element name.
 		//	The strategy is to read the attributes without processing them
 		//	and then allow the next item to be processed as normal.
-		this.readExtraAttributes( name );
+		Map< String, String > attributes = this.readExtraAttributes( name );
+//		this.eatWhiteSpace();
+		this.mustReadExpr();
+		
+		final MinXML e = this.parent.partBuild();
+		e.putAllAttributes( attributes );
+		this.parent.addElement( e );
+		
 		this.eatWhiteSpace();
-		final char nch = nextChar();
-		if ( this.surface_syntax.isOpenArrayChar( nch ) ) {
-			final String tag = this.surface_syntax.tagOfOpenArrayChar( nch );
-			this.startTagOpen( tag );
-			this.startTagClose( tag );
-			this.pushTag( tag, this.surface_syntax.closingArrayChar( nch ), Context.InEmbeddedArray );
-			return;
-		} else if ( nch == '{' ) {
-			final String tag = json_keys.OBJECT;
-			this.startTagOpen( tag );
-			this.startTagClose( tag );
-			this.pushTag( tag, '}', Context.InEmbeddedObject );
-			return;
-		} else {
-			throw new Alert( "Missing element name" );
-		}
+		this.mustReadChar( '/' );
+		this.mustReadChar( '>' );
 	}	
 	
-	private void normalStartTag( final String name ) {
-		//	This section is a normal start/standalone tag.
-		this.startTagOpen( name );
-		
-		this.processAttributes();
-		this.startTagClose( name );
-		
-		this.eatWhiteSpace();
-		final char nch = nextChar();
-		if ( nch == '/' ) {
-			//	It was a standalone tag.
-			this.mustReadChar( '>' );
-			this.pushPendingTag( name, '\0', Context.InElement );
-		} else if ( nch == '>' ) {
-			//	It was a start tag.
-			this.pushTag( name, '\0', Context.InElement );
-		} else if ( this.EMBEDDED_EXTENSION && this.surface_syntax.isOpenArrayChar( nch ) ) {
-			//	It is a standalone tag with embedded children.
-			this.pushTag( name, this.surface_syntax.closingArrayChar( nch ), Context.InEmbeddedArray );
-		} else if ( this.EMBEDDED_EXTENSION && nch == '{' ) {
-			//	It is a standalone tag with embedded pairs.
-			this.pushTag( name, '}', Context.InEmbeddedObject );
-		} else {
-			throw new Alert( "Invalid continuation" ).culprit( "Character", nch );
-		}
-	}
-
-	
-	private void readStartTag() {
-		final String name = this.readName();
-		this.eatWhiteSpace();
-		if ( this.EMBEDDED_EXTENSION ) {
-			final char nch = this.peekChar( '\0' );
-			if ( this.tryReadChar( '=' ) ) {
-				readNamelessStartTag( name );
-			} else if ( name.isEmpty() && this.surface_syntax.isOpenArrayChar( nch ) ) {
-				this.discardChar();
-				final String tag = this.surface_syntax.tagOfOpenArrayChar( nch );
-				this.startTagOpen( tag );
-				this.startTagClose( tag );
-				this.pushTag( tag, this.surface_syntax.closingArrayChar( nch ), Context.InEmbeddedArray );
-			} else if ( name.isEmpty() && this.tryReadChar( '{' ) ) {
-				this.startTagOpen( json_keys.OBJECT );
-				this.startTagClose( json_keys.OBJECT );
-				this.pushTag( json_keys.OBJECT, '}', Context.InEmbeddedObject );
-			} else {
-				this.normalStartTag( name );
-			} 
-		} else {
-			this.normalStartTag( name );
-		}
-	}
-	
-	private void readTag() {
-		this.discardChar();	//	Throw away leading <.
-		this.eatWhiteSpace();
-		final char ch = this.peekChar();
-		if ( ch == '/' ) {
-			this.readEndTag();
-		} else if ( ch == '!' || ch == '?' ) {
-			this.discardChar();
-			this.discardXMLComment( ch );
-			this.readOneTag();
-			return;
-		} else {
-			this.readStartTag();
-		}
-	}
 	
 	void parseConstant( final String sofar, final String type ) {
 		this.startTagOpen( json_keys.CONSTANT );
 		this.put( json_keys.CONSTANT_TYPE, type );
 		this.put( json_keys.CONSTANT_VALUE, sofar );
 		this.startTagClose( json_keys.CONSTANT );
-		this.pushPendingTag( json_keys.CONSTANT, '\0', Context.InAtom );
+		this.endTag( json_keys.CONSTANT );
 	}
 	
 	void readNumber() {
@@ -685,18 +550,7 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 	
 
 	void readJSONString() {
-		final String s = readJSONStringText();
-		if ( 
-			this.isInObject() && 
-			( ! this.extra_attributes.containsKey( json_keys.FIELD ) )  
-		) {
-			this.eatWhiteSpace();
-			this.mustReadChar( FIELD_ATTRIBUTE_SUFFIX );
-			this.extra_attributes.put( json_keys.FIELD, s );
-			this.readOneTag();
-		} else {
-			this.parseConstant( s, json_keys.STRING );
-		}
+		this.parseConstant( this.readJSONStringText(), json_keys.STRING );
 	}
 
 	public String readJSONStringText() {
@@ -742,25 +596,12 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 		this.startTagOpen( json_keys.ID );
 		this.put( json_keys.ID_NAME, sofar );
 		this.startTagClose( json_keys.ID );
-		this.pushPendingTag( json_keys.ID, '\0', Context.InAtom );
+		this.endTag( json_keys.ID ); 
 	}
 	
 	void readIdentifier() {
 		final String identifier = readIdentifierText();
-		if ( this.isInObject() && ! this.extra_attributes.containsKey( json_keys.FIELD ) ) {
-			this.eatWhiteSpace();
-			this.mustReadChar( FIELD_ATTRIBUTE_SUFFIX );
-			this.extra_attributes.put( json_keys.FIELD, identifier );
-			this.readOneTag();
-		} else if ( this.FIELD_EXTENSION && this.isInElement() && ! this.extra_attributes.containsKey( json_keys.FIELD ) ) {
-			this.eatWhiteSpace();
-			if ( this.tryReadChar( FIELD_ATTRIBUTE_SUFFIX ) ) {
-				this.extra_attributes.put( json_keys.FIELD, identifier );
-				this.readOneTag();				
-			} else {
-				parseId( identifier );
-			}
-		} else if ( "true".equals( identifier ) || "false".equals( identifier ) ) {
+		if ( "true".equals( identifier ) || "false".equals( identifier ) ) {
 			this.parseConstant( identifier, json_keys.BOOLEAN );
 		} else if ( identifier.equals( "null" ) ) {
 			this.parseConstant( identifier, json_keys.NULLEAN );
@@ -774,7 +615,7 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 					this.put( json_keys.ID_NAME, identifier );
 					this.startTagClose( json_keys.ID );
 					this.startTagClose( json_keys.ID );
-					this.readExpr();
+					this.mustReadExpr();
 					this.endTag( "indexByPosition" );
 				} else {
 					parseId( identifier );
@@ -804,14 +645,63 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 		final String tag = this.surface_syntax.tagOfOpenArrayChar( ch );
 		this.startTagOpen( tag );
 		this.startTagClose( tag );
-		this.pushTag( tag, this.surface_syntax.closingArrayChar( ch ), Context.InArray );
+		
+		final char closing_char = this.surface_syntax.closingArrayChar( ch );
+		this.eatWhiteSpace();
+		if ( ! this.tryReadChar( closing_char ) ) {
+			for (;;) {
+				this.mustReadExpr();
+				this.consumeOptionalTerminator();
+				this.eatWhiteSpace();
+				if ( this.tryReadChar( closing_char ) ) break;
+			}
+		}
+		
+		this.endTag( tag );
+		
+		if ( this.surface_syntax.isCloseParenthesis( closing_char ) ) {
+			MinXML parenthetical_expression = this.parent.partBuild();
+			if ( parenthetical_expression.size() == 1 ) {
+				parenthetical_expression = parenthetical_expression.getFirst();
+			} else if ( ! this.TUPLE_EXTENSION ) {
+				throw new Alert( "Parentheses used as tuple without tuple extension enabled" );
+			}
+			this.parent.addElement( parenthetical_expression );
+		}
 	}
 	
 	private void readObject() {
 		this.discardChar();
 		this.startTagOpen( json_keys.OBJECT );
 		this.startTagClose( json_keys.OBJECT );
-		this.pushTag( json_keys.OBJECT, '}', Context.InObject );
+		this.eatWhiteSpace();
+		if ( ! this.tryReadChar( '}' ) ) {
+			for (;;) {
+				final char nch = this.peekChar( '\0' );
+				final String field;
+				if ( nch == '"' ) {
+					field = readJSONStringText();
+				} else if ( isIdentifierStart( nch ) ) {
+					field = readIdentifierText();
+				} else {
+					throw new Alert( "Field name required" ).culprit( "At character", nch );
+				}
+				this.eatWhiteSpace();
+				if ( ! this.tryReadChar( '=' ) ) {
+					this.mustReadChar( ':' );
+				}
+				this.mustReadExpr();
+				final MinXML e = this.parent.partBuild();
+				e.putAttribute( this.json_keys.FIELD, field );
+				this.parent.addElement( e );
+				this.consumeOptionalTerminator();
+				this.eatWhiteSpace();
+				if ( this.tryReadChar( '}' ) ) break;
+			}
+		}
+		
+		this.endTag( json_keys.OBJECT );
+
 	}
 	
 	void readTypeTag() {
@@ -819,6 +709,106 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 		final String name = is_string ? this.readJSONStringText() : this.readName();
 		this.extra_attributes.put( json_keys.TYPE, name );
 		this.readWithoutPending();
+	}
+	
+	private void processAttributes() {
+		for (;;) {
+			this.eatWhiteSpace();
+			char c = peekChar();
+			if ( c == '/' || c == '>' || this.surface_syntax.isOpenArrayChar( c ) || c == '{'  ) break;
+			final String key = this.readName();
+			
+			this.eatWhiteSpace();
+			final int n = this.mustReadOneOf( "=:" );
+			this.eatWhiteSpace();
+			final String value = n == 0 ? this.readAttributeValue() : this.readJSONStringText();
+			this.put( key, value );
+		}
+	}
+	
+	private void normalStartTag( final String name ) {
+		//	This section is a normal start/standalone tag.
+		this.startTagOpen( name );
+		
+		this.processAttributes();
+		this.startTagClose( name );
+		
+		this.eatWhiteSpace();
+		final char nch = this.nextChar();
+		if ( nch == '/' ) {
+			//	It was a standalone tag.
+			this.mustReadChar( '>' );
+			this.endTag( name );
+		} else if ( nch == '>' ) {
+			//	It was a start tag.
+			this.eatWhiteSpace();
+			if ( ! this.tryPeekString( "</" ) ) {
+				for (;;) {
+					this.mustReadExpr();
+					this.consumeOptionalTerminator();
+					this.eatWhiteSpace();
+					if ( this.tryPeekString( "</" ) ) break;					
+				}
+			}
+			this.discardChar();
+			this.discardChar();
+			this.eatWhiteSpace();
+			if ( ! this.tryReadChar( '>' ) ) {
+				String end_tag = this.readName();
+				if ( ! end_tag.equals( name ) ) {
+					throw new Alert( "Mismatched tags" ).culprit( "Expecting", name ).culprit( "Actual", end_tag );
+				}
+				this.eatWhiteSpace();
+				this.mustReadChar( '>' );
+			}
+			this.endTag( name );
+		} else if ( this.EMBEDDED_EXTENSION && ( this.surface_syntax.isOpenArrayChar( nch ) || nch == '{' ) ) {
+			this.cucharin.pushChar( nch );
+			for ( MinXML kid : this.mustReadExprPartBuild() ) {
+				this.parent.addElement( kid );
+			}
+			this.endTag( name );
+			this.eatWhiteSpace();
+			this.mustReadChar( '/' );
+			this.mustReadChar( '>' );
+		} else {
+			throw new Alert( "Invalid continuation" ).culprit( "Character", nch );
+		}
+	}
+	
+	private void readStartTag() {
+		final String name = this.readName();
+		this.eatWhiteSpace();
+		if ( this.EMBEDDED_EXTENSION ) {
+			if ( this.tryReadChar( '=' ) ) {
+				readNamelessStartTag( name );
+			} else if ( name.isEmpty() ) {
+				this.mustReadExpr();
+				this.eatWhiteSpace();
+				this.mustReadChar( '/' );
+				this.mustReadChar( '>' );
+			} else {
+				this.normalStartTag( name );
+			} 
+		} else {
+			this.normalStartTag( name );
+		}
+	}
+	
+	private void readTag() {
+		this.discardChar();	//	Throw away leading <.
+		this.eatWhiteSpace();
+		final char ch = this.peekChar();
+		if ( ch == '/' ) {
+			throw new Alert( "Unmatched end tag" );
+		} else if ( ch == '!' || ch == '?' ) {
+			this.discardChar();
+			this.discardXMLComment( ch );
+			this.readOneTag();
+			return;
+		} else {
+			this.readStartTag();
+		}
 	}
 
 	private void readWithoutPending() {
@@ -837,27 +827,6 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 			this.readArray( ch );
 		} else if ( ch == '{' ) {
 			this.readObject();
-		} else if ( ch == '}' || this.surface_syntax.isCloseArrayChar( ch ) ) {
-			this.discardChar();
-			final boolean was_in_element = this.isInEmbeddedContainer();
-			if ( was_in_element ) {
-				this.eatWhiteSpace();
-				this.mustReadChar( '/' );
-				this.mustReadChar( '>' );
-			}
-			this.endTag( this.popTag( ch ) );
-			if ( this.surface_syntax.isCloseParenthesis( ch ) ) {
-				MinXML parenthetical_expression = this.parent.partBuild();
-				if ( parenthetical_expression.size() == 1 ) {
-					parenthetical_expression = parenthetical_expression.getFirst();
-				} else if ( ! this.TUPLE_EXTENSION ) {
-					throw new Alert( "Parentheses used as tuple without tuple extension enabled" );
-				}
-				this.parent.addElement( parenthetical_expression );
-			}
- 			if ( this.isntAtTopLevel() ) {
-				this.setExpectingTerminator( was_in_element );
-			}
 		} else if ( this.TYPE_PREFIX_EXTENSION  && this.tryReadString( TYPE_ATTRIBUTE_PREFIX ) ) {
 			this.readTypeTag();
 		} else {
@@ -865,13 +834,39 @@ public class MinXSONParser extends LevelTracker implements Iterable< MinXML > {
 		}		
 	}
 	
-	private void readExpr() {
-		while ( this.readOneTag() ) {
-			if ( this.isAtTopLevel() ) break;
+	private boolean readOneTag() {		 
+		this.eatWhiteSpace();
+		if ( this.cucharin.hasNextChar() ){
+			this.readWithoutPending();
+			return true;
+		} else {
+			return false;
 		}
-		if ( ! this.isAtTopLevel() ) {
+	}
+	
+	
+	private boolean readExpr() {
+		final int n = this.parent.nestingLevel();
+		boolean read_tag = false;
+		while ( this.readOneTag() ) {
+			read_tag = true;
+			if ( this.parent.isAtNestingLevel( n ) ) break;
+		}
+		if ( ! this.parent.isAtNestingLevel( n ) ) {
 			throw new Alert( "Unexpected end of input" );
-		}		
+		}
+		return read_tag;
+	}
+	
+	private void mustReadExpr() {
+		if ( ! this.readExpr() ) {
+			throw new Alert( "Unexpected end of input" );
+		}
+	}
+
+	private MinXML mustReadExprPartBuild() {
+		this.mustReadExpr();
+		return this.parent.partBuild();
 	}
 	
 	/**

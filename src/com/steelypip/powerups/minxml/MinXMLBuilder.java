@@ -59,6 +59,22 @@ public interface MinXMLBuilder {
 	void startTagOpen( String name );
 	
 	/**
+	 * This method returns the difference between the number of 
+	 * startTagOpen and endTags calls. 
+	 * @return the nesting level.
+	 */
+	int nestingLevel();
+	
+	/**
+	 * Returns true if the nesting level is the value n.
+	 * @param n the nesting level we are interested in.
+	 * @return whether the nesting level is n.
+	 */
+	default boolean isAtNestingLevel( final int n ) {
+		return n == this.nestingLevel();
+	}
+	
+	/**
 	 * This method adds the attribute key=value to the start tag
 	 * that is under construction. The builder method starTagOpen must
 	 * have been the immediately previous method.

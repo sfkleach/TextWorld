@@ -276,6 +276,16 @@ public class TestMinXSONParser {
 			"<object alpha=\"beta\"><id field=\"left\" name=\"right\"/></object>",
 			'E'
 		);
+		equivalent( 
+			"<[value]/>", 
+			"<array><id name=\"value\"/></array>",
+			'E'
+		);
+		equivalent( 
+			"< [ value ] />", 
+			"<array><id name=\"value\"/></array>",
+			'E'
+		);
 	}
 	
 	@Test
