@@ -137,6 +137,10 @@ public interface MinXML extends List< @NonNull MinXML > {
 	 */
 	int sizeAttributes();
 	
+	default boolean isEmptyAttributes() {
+		return this.sizeAttributes() == 0;
+	}
+	
 	/**
 	 * Returns a iterator for the set of keys of the attributes of an element, as if the
 	 * attributes were implemented as a {@link Map}, which does not share updates
@@ -212,6 +216,19 @@ public interface MinXML extends List< @NonNull MinXML > {
 	 */
 	void putAllAttributes( Map< String, String > map ) throws UnsupportedOperationException;
 	
+	/* 
+	 * Copies over all the entries from a supplied element into the 
+	 * attributes of this element. A class implementing MinXML is not obliged to implement 
+	 * putAllAttributes and may throw an {@link UnsupportedOperationException}.
+	 * 
+	 * @param minx the minimal XML element
+	 * @throws UnsupportedOperationException if the implementing class cannot support this method
+	 */
+	default void putAllAttributes( final MinXML minx ) throws UnsupportedOperationException {
+		if ( this == minx || minx.isEmptyAttributes() ) return;
+		this.putAllAttributes( minx.asMap() );
+	}
+	
 	/**
 	 * Removes all the attributes of the element. A class implementing MinXML is
 	 * not obliged to implement clearAttributes and may throw an {@link UnsupportedOperationException}.
@@ -277,6 +294,10 @@ public interface MinXML extends List< @NonNull MinXML > {
 	 * @param pw the {@link PrintWriter} to use.
 	 */
 	void prettyPrint( PrintWriter pw );
+	
+	default void prettyPrint() {
+		this.prettyPrint( new PrintWriter( System.out  ) );
+	}
 	
 	/**
 	 * Renders the element using the supplied {@link java.io.Writer} such that each start and 

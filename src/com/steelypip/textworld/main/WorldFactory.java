@@ -80,9 +80,7 @@ public class WorldFactory {
 				final @NonNull MinXML game_object_config = readMinXML( f );
 				initialisations.add( new Initialisation( game_object, var, game_object_config, f ) );
 			}
-			for ( Initialisation i : initialisations ) {
-				i.init();
-			}
+			initialisations.forEach( i -> i.init() );
 		} else {
 			throw new Alert( "Directory needed" ).hint( "Might not exist" ).culprit( "Folder name", top_level_folder );
 		}

@@ -20,8 +20,10 @@ import com.steelypip.powerups.alert.Alert;
 import com.steelypip.powerups.shell.CmdArgs;
 import com.steelypip.powerups.shell.CmdOption;
 import com.steelypip.powerups.shell.StdCmdLineProcessor;
+import com.steelypip.textworld.main.console.ConsoleGameEngine;
+import com.steelypip.textworld.main.web.WebGameEngine;
 
-public class Main extends StdCmdLineProcessor {
+public class Main extends StdCmdLineProcessor implements Options {
 	
 	enum Mode {
 		ERROR,
@@ -34,6 +36,7 @@ public class Main extends StdCmdLineProcessor {
 	private Mode mode = Mode.CONSOLE;
 	private boolean debugging = false;
 	private boolean gamemaster = false;
+	private boolean editing = false; 
 	private ReadLine input = () -> System.console().readLine( "> " );
 	private LinkedList< File > files = new LinkedList<>();
 	
@@ -51,6 +54,22 @@ public class Main extends StdCmdLineProcessor {
 		}		
 	}
 	
+	public ReadLine getInStream() {
+		return input;
+	}
+
+	public boolean isDebugging() {
+		return debugging;
+	}
+
+	public void setDebugging( boolean debugging ) {
+		this.debugging = debugging;
+	}
+
+	public boolean isEditing() {
+		return editing;
+	}
+
 	void run( String[] args ) {
 		this.processCmdLineArgs( args );
 		logger.setLevel( this.debugging ? Level.INFO : Level.WARNING );
@@ -85,8 +104,9 @@ public class Main extends StdCmdLineProcessor {
 
 	private void runGameInWebMode() {
 		WebGameEngine console_game_engine = null;
-		try {	
-			console_game_engine = new WebGameEngine( this.newWorld(), this.debugging );
+		try {
+			final World world = this.editing ? null : this.newWorld();
+			console_game_engine = new WebGameEngine( world, this );
 			console_game_engine.run();
 		} catch ( Alert alert ) {
 			alert.report();
@@ -96,10 +116,11 @@ public class Main extends StdCmdLineProcessor {
 		}
 	}
 
+
 	private void runGameInConsoleMode() {
 		ConsoleGameEngine console_game_engine = null;
 		try {	
-			console_game_engine = new ConsoleGameEngine( this.newWorld(), this.input, this.debugging );
+			console_game_engine = new ConsoleGameEngine( this.newWorld(), this );
 			console_game_engine.run();
 		} catch ( Alert alert ) {
 			alert.report();
@@ -151,6 +172,9 @@ public class Main extends StdCmdLineProcessor {
         	this.mode = Mode.CONSOLE;
         } else if ( option.is( 'w', "web", "Run in web browser" ) ) {
         	this.mode = Mode.WEB;
+        } else if ( option.is( 'e', "edit", "Run in web browser, starting in edit mode" ) ) {
+        	this.mode = Mode.WEB;
+        	this.editing = true;
         } else if ( option.is(  'j', "jline", "Enables readline editing for UNIX terminals." ) ) {
         	this.input = this.jlineToReadLine();
         } else if ( option.is( 'D', "debugging", "Enables debug output" ) ) {

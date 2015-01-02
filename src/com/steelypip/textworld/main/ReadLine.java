@@ -1,5 +1,5 @@
 package com.steelypip.textworld.main;
 
-interface ReadLine {
+public interface ReadLine {
 	String readLine();
 }

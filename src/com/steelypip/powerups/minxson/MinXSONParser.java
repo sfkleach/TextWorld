@@ -50,7 +50,6 @@ import com.steelypip.powerups.minxml.MinXMLBuilder;
 public class MinXSONParser implements Iterable< MinXML > {
 	
 	private static final String TYPE_ATTRIBUTE_PREFIX = "@";
-//	private static final char FIELD_ATTRIBUTE_SUFFIX = ':';
 
 	protected JSONKeywords json_keys = JSONKeywords.KEYS;
 	protected SurfaceSyntax surface_syntax;
@@ -60,18 +59,18 @@ public class MinXSONParser implements Iterable< MinXML > {
 	private LineNumberCounter line_number; 
 	private File file;
 	
-	private final TreeMap< String, String > extra_attributes = new TreeMap< String, String >();
 	private boolean EMBEDDED_EXTENSION = false;
 	private boolean TYPE_PREFIX_EXTENSION = false;
 	private boolean TUPLE_EXTENSION = false;
-	private boolean FIELD_EXTENSION = false;
 	private boolean INDEX_EXTENSION = false;
+	private boolean FIELD_EXTENSION = false;
 	
 	/**
 	 * These extensions toggle optional features.
 	 * 	Option 'A' switches on _A_ll extensions.
 	 *  Option 'E' switches on the _E_mbedded extension.
 	 *  Option 'F' switches on the _F_ield extension.
+	 *  Option 'I' switches on the _I_ndex extension.
 	 *  Option 'T' switches on the _T_ype-prefix extension.
 	 *  Option 'U' switches on the t_U_ple extension.
 	 * @param extensions a character array encoding the set of extensions needed.
@@ -171,8 +170,7 @@ public class MinXSONParser implements Iterable< MinXML > {
 	}
 	
 	private boolean hasNextExpression() {
-		this.eatWhiteSpace();
-		return this.cucharin.peekChar( '\0' ) == '<';
+		return this.afterWhiteSpacePeekChar( '\0' ) == '<';
 	}
 	
 	public void mustReadChar( final char ch_want ) {
@@ -185,6 +183,21 @@ public class MinXSONParser implements Iterable< MinXML > {
 				throw new Alert( "Unexpected end of stream" );
 			}			
 		}
+	}
+	
+	private void afterWhiteSpaceMustReadChar( final char ch_want ) {
+		this.eatWhiteSpace();
+		this.mustReadChar( ch_want );
+	}
+	
+	private char afterWhiteSpacePeekChar() {
+		this.eatWhiteSpace();
+		return this.peekChar();
+	}
+	
+	private char afterWhiteSpacePeekChar( final char ch ) {
+		this.eatWhiteSpace();
+		return this.peekChar( ch );
 	}
 	
 	private int mustReadOneOf( final String t ) {
@@ -205,6 +218,11 @@ public class MinXSONParser implements Iterable< MinXML > {
 		}
 	}
 	
+	private boolean afterWhiteSpaceTryReadChar( char ch_want ) {
+		this.eatWhiteSpace();
+		return this.tryReadChar( ch_want );
+	}
+ 	
 	private boolean	tryReadString( final String want ) {
 		if ( this.cucharin.isNextString( want ) ) {
 			this.discardChar( want.length() );
@@ -219,10 +237,10 @@ public class MinXSONParser implements Iterable< MinXML > {
 	}
 	
 	public boolean tryEatComment() {
-		final char ch  = this.cucharin.peekChar( '\0' );
+		final char ch  = this.peekChar( '\0' );
 		if ( ch == '/' ) {
 			this.cucharin.skipChar();
-			final char nch = this.cucharin.peekChar( '\0' );
+			final char nch = this.peekChar( '\0' );
 			if ( nch == '/' ) {
 				this.cucharin.skipUntil( '\n' );
 				this.cucharin.pushChar( '\n' ); 	//	But don't consume the newline.
@@ -248,7 +266,7 @@ public class MinXSONParser implements Iterable< MinXML > {
 	
 	public void eatWhiteSpace() {
 		while ( this.cucharin.hasNextChar() ) {
-			final char ch = this.cucharin.peekChar();
+			final char ch = this.peekChar();
 			if ( ch == '#' ) {
 				this.cucharin.skipChar();
 				if ( this.peekChar( '\0' ) == '!' && this.parent.isAtNestingLevel( 0 ) ) {
@@ -271,10 +289,6 @@ public class MinXSONParser implements Iterable< MinXML > {
 	
 	private void startTagOpen( final String tag ) {
 		this.parent.startTagOpen( tag );
-		for ( Map.Entry< String, String > m : this.extra_attributes.entrySet() ) {
-			this.parent.put( m.getKey(), m.getValue() );
-		}
-		this.extra_attributes.clear();
 	}
 
 	private void startTagClose( final String tag ) {
@@ -361,7 +375,6 @@ public class MinXSONParser implements Iterable< MinXML > {
 		}
 		return attr.toString();
 	}	
-
 	
 	void consumeOptionalTerminator() {
 		// End of input is a valid terminator!
@@ -421,7 +434,6 @@ public class MinXSONParser implements Iterable< MinXML > {
 			this.cucharin.skipUntil( '>' );
 		}
 	}
-
 	
 	private boolean charEndsAttributes( final char c ) {
 		return c == '/' || c == '>' || this.surface_syntax.isOpenArrayChar( c ) || c == '{';
@@ -431,22 +443,20 @@ public class MinXSONParser implements Iterable< MinXML > {
 	 * Consumes a sequence of attributes and any subsequent whitespace.
 	 */
 	private Map< String, String > readExtraAttributes( final String initial_key ) {
-		Map< String, String > attributes = new TreeMap<>();
-		String initial_value = this.readAttributeValue();
+		final Map< String, String > attributes = new TreeMap<>();
+		final String initial_value = this.readAttributeValue();
 		attributes.put( initial_key, initial_value );
-//		this.extra_attributes.put( initial_key, initial_value );
 		for (;;) {
 			this.eatWhiteSpace();
-			final char c = peekChar();
+			final char c = this.afterWhiteSpacePeekChar();
 			if ( this.charEndsAttributes( c ) ) {
 				break;
 			}
-			String key = this.readName();
-			this.eatWhiteSpace();
-			this.mustReadChar( '=' );
+			final String key = this.readName();
+			this.afterWhiteSpaceMustReadChar( '=' );
 			this.eatWhiteSpace();
 			final String value = readAttributeValue();
-			attributes.put(  key,  value  );
+			attributes.put( key, value );
 		}
 		return attributes;
 	}
@@ -455,19 +465,16 @@ public class MinXSONParser implements Iterable< MinXML > {
 		//	We have attributes without an element name.
 		//	The strategy is to read the attributes without processing them
 		//	and then allow the next item to be processed as normal.
-		Map< String, String > attributes = this.readExtraAttributes( name );
-//		this.eatWhiteSpace();
+		final Map< String, String > attributes = this.readExtraAttributes( name );
 		this.mustReadExpr();
 		
 		final MinXML e = this.parent.partBuild();
 		e.putAllAttributes( attributes );
 		this.parent.addElement( e );
 		
-		this.eatWhiteSpace();
-		this.mustReadChar( '/' );
+		this.afterWhiteSpaceMustReadChar( '/' );
 		this.mustReadChar( '>' );
 	}	
-	
 	
 	void parseConstant( final String sofar, final String type ) {
 		this.startTagOpen( json_keys.CONSTANT );
@@ -550,7 +557,14 @@ public class MinXSONParser implements Iterable< MinXML > {
 	
 
 	void readJSONString() {
-		this.parseConstant( this.readJSONStringText(), json_keys.STRING );
+		final String jstring = this.readJSONStringText();
+		if ( ! this.parent.isAtNestingLevel( 0 ) && this.FIELD_EXTENSION && this.afterWhiteSpaceTryReadChar( ':' ) ) {
+			final MinXML e = this.mustReadExprPartBuild();
+			e.putAttribute( json_keys.FIELD, jstring);
+			this.parent.addElement( e );
+		} else {
+			this.parseConstant( jstring, json_keys.STRING );
+		}
 	}
 
 	public String readJSONStringText() {
@@ -605,21 +619,24 @@ public class MinXSONParser implements Iterable< MinXML > {
 			this.parseConstant( identifier, json_keys.BOOLEAN );
 		} else if ( identifier.equals( "null" ) ) {
 			this.parseConstant( identifier, json_keys.NULLEAN );
+		} else if ( this.parent.isAtNestingLevel( 0 ) ) {
+			parseId( identifier );
 		} else {
-			if ( this.INDEX_EXTENSION ) {
-				this.eatWhiteSpace();
-				if ( this.tryReadChar( '[' ) ) {
-					this.startTagOpen( "indexByPosition" );
-					this.startTagClose( "indexByPosition" );
-					this.startTagOpen( json_keys.ID );
-					this.put( json_keys.ID_NAME, identifier );
-					this.startTagClose( json_keys.ID );
-					this.startTagClose( json_keys.ID );
-					this.mustReadExpr();
-					this.endTag( "indexByPosition" );
-				} else {
-					parseId( identifier );
-				}
+			this.eatWhiteSpace();
+			if ( this.INDEX_EXTENSION && this.tryReadChar( '[' ) ) {
+				this.startTagOpen( "indexByPosition" );
+				this.startTagClose( "indexByPosition" );
+				this.startTagOpen( json_keys.ID );
+				this.put( json_keys.ID_NAME, identifier );
+				this.startTagClose( json_keys.ID );
+				this.endTag( json_keys.ID );
+				this.mustReadExpr();
+				this.afterWhiteSpaceMustReadChar( ']' );
+				this.endTag( "indexByPosition" );
+			} else if ( this.FIELD_EXTENSION && this.tryReadChar( ':' ) ) {
+				final MinXML e = this.mustReadExprPartBuild();
+				e.putAttribute( json_keys.FIELD, identifier );
+				this.parent.addElement( e );
 			} else {
 				parseId( identifier );
 			}
@@ -707,14 +724,14 @@ public class MinXSONParser implements Iterable< MinXML > {
 	void readTypeTag() {
 		final boolean is_string = this.cucharin.isNextChar( '"' ) || this.cucharin.isNextChar( '\'' );
 		final String name = is_string ? this.readJSONStringText() : this.readName();
-		this.extra_attributes.put( json_keys.TYPE, name );
-		this.readWithoutPending();
+		final MinXML e = this.mustReadExprPartBuild();
+		e.putAttribute( json_keys.TYPE, name );
+		this.parent.addElement( e );
 	}
 	
 	private void processAttributes() {
 		for (;;) {
-			this.eatWhiteSpace();
-			char c = peekChar();
+			final char c = this.afterWhiteSpacePeekChar();
 			if ( c == '/' || c == '>' || this.surface_syntax.isOpenArrayChar( c ) || c == '{'  ) break;
 			final String key = this.readName();
 			
@@ -758,8 +775,7 @@ public class MinXSONParser implements Iterable< MinXML > {
 				if ( ! end_tag.equals( name ) ) {
 					throw new Alert( "Mismatched tags" ).culprit( "Expecting", name ).culprit( "Actual", end_tag );
 				}
-				this.eatWhiteSpace();
-				this.mustReadChar( '>' );
+				this.afterWhiteSpaceMustReadChar( '>' );
 			}
 			this.endTag( name );
 		} else if ( this.EMBEDDED_EXTENSION && ( this.surface_syntax.isOpenArrayChar( nch ) || nch == '{' ) ) {
@@ -768,8 +784,7 @@ public class MinXSONParser implements Iterable< MinXML > {
 				this.parent.addElement( kid );
 			}
 			this.endTag( name );
-			this.eatWhiteSpace();
-			this.mustReadChar( '/' );
+			this.afterWhiteSpaceMustReadChar( '/' );
 			this.mustReadChar( '>' );
 		} else {
 			throw new Alert( "Invalid continuation" ).culprit( "Character", nch );
@@ -784,8 +799,7 @@ public class MinXSONParser implements Iterable< MinXML > {
 				readNamelessStartTag( name );
 			} else if ( name.isEmpty() ) {
 				this.mustReadExpr();
-				this.eatWhiteSpace();
-				this.mustReadChar( '/' );
+				this.afterWhiteSpaceMustReadChar( '/' );
 				this.mustReadChar( '>' );
 			} else {
 				this.normalStartTag( name );
@@ -797,8 +811,7 @@ public class MinXSONParser implements Iterable< MinXML > {
 	
 	private void readTag() {
 		this.discardChar();	//	Throw away leading <.
-		this.eatWhiteSpace();
-		final char ch = this.peekChar();
+		final char ch = this.afterWhiteSpacePeekChar();
 		if ( ch == '/' ) {
 			throw new Alert( "Unmatched end tag" );
 		} else if ( ch == '!' || ch == '?' ) {

@@ -1,0 +1,11 @@
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="/static/page.css" />
+		<title>
+			"TextWorld Editor ", version
+		</title>
+	</head>
+	<body>
+		<p>Object Page</p>
+	</body>
+</html>

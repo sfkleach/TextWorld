@@ -482,6 +482,15 @@ public class TestMinXSONParser {
 			'U'
 		);	
 	}
+	
+	@Test
+	public void testIndexExtension() {
+		equivalent(
+			"i[0]",
+			"<indexByPosition><id name=\"i\"/><constant type=\"integer\" value=\"0\"/></indexByPosition>",
+			'I'
+		);	
+	}
 
 	/*@Test
 	public void testPrettyPrint() throws FileNotFoundException {

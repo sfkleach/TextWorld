@@ -2,17 +2,17 @@
 	<head>
 		<link rel="stylesheet" type="text/css" href="/static/page.css" />
 		<title>
-			"TextWorld Editor"
+			"TextWorld Editor ", version
 		</title>
 	</head>
 	<body>
 		<ul>
-			<for name="item" in="list">
-				<li> 
-					<a>
-						<attributes> href: item[0] </>
+			<for var="item" in="list">
+				<li>
+					<a> 
+						href: item[0],
 						item[1]
-					</> 
+					</>
 				</li>
 			</for>
 		</ul>

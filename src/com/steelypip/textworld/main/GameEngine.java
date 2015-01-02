@@ -2,20 +2,18 @@ package com.steelypip.textworld.main;
 
 import java.io.PrintWriter;
 
-import org.eclipse.jdt.annotation.NonNull;
-
 import com.steelypip.textworld.gameclasses.Turn;
 
 public abstract class GameEngine {
 	
 	public abstract void run();
 	
-	boolean debugging;
-	final @NonNull World world;
+	final protected World world;
+	final protected Options options;
 	
-	public GameEngine( final @NonNull World world, final boolean debugging ) {
+	public GameEngine( final World world, final Options options   ) {
 		this.world = world;
-		this.debugging = debugging;
+		this.options = options;
 	}
 	
 	public World getWorld() {
@@ -23,11 +21,11 @@ public abstract class GameEngine {
 	}
 
 	public boolean isDebugging() {
-		return debugging;
+		return this.options.isDebugging();
 	}
 
 	public void setDebugging( boolean debugging ) {
-		this.debugging = debugging;
+		this.options.setDebugging( debugging );
 	}
 		
 	public void welcome( Turn turn ) {

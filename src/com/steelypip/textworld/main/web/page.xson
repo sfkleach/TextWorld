@@ -4,12 +4,12 @@
 		<title>
 			"TextWorld", version
 		</title>
-	</head>
+	</head> 
 	<body>
 		<if name="active" test="ok" {
 		then:
 			<div>
-				<pre> welcome </pre>
+				<!-- <pre> welcome </pre> -->
 				<if name="image" test="ok" {
 				then:
 					<img width="75%" height="auto" { "src": image }/>
@@ -22,7 +22,7 @@
 					<form method="get">
 						<input type="text" name="command" autofocus="true"/>
 					</form>
-				</pre>
+				</pre> 
 			</div>
 		}/>
 		
@@ -30,6 +30,6 @@
 			"Extra form: ",
 			<input type="hidden" name="Secret" value="This &amp; that = and the other"/>
 			<input type="submit" name="OK"/>
-		</form>
+		</form> 
 	</body>
 </html>

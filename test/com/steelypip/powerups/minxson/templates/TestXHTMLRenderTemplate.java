@@ -2,6 +2,10 @@ package com.steelypip.powerups.minxson.templates;
 
 import static org.junit.Assert.*;
 
+import java.io.File;
+import java.io.InputStreamReader;
+import java.io.Reader;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -30,5 +34,6 @@ public class TestXHTMLRenderTemplate {
 		renderer.render( b.build() );
 		assertEquals( "<p>Hello, world!</p>", print_writer.toString() );
 	}
+
 
 }

@@ -1,4 +1,4 @@
-package com.steelypip.textworld.main;
+package com.steelypip.textworld.main.web;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,9 +20,12 @@ import com.steelypip.powerups.alert.Alert;
 import com.steelypip.powerups.chain.Chain;
 import com.steelypip.powerups.io.StringPrintWriter;
 import com.steelypip.powerups.minxml.MinXML;
+import com.steelypip.powerups.minxson.MinXSON;
 import com.steelypip.powerups.minxson.templates.XHTMLRenderTemplate;
 import com.steelypip.textworld.gameclasses.Turn;
 import com.steelypip.textworld.gameclasses.loadable.Avatar;
+import com.steelypip.textworld.main.Main;
+import com.steelypip.textworld.main.World;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -51,7 +54,7 @@ class GameHandler extends WikiPage implements HttpHandler {
 			if ( ! welcomed ) {
 				this.game_engine.welcome( turn );
 				this.welcomed = true;	
-				return newString( pw.toString() );
+				return MinXSON.newString( pw.toString() );
 			} else {
 				return null;
 			}
@@ -62,7 +65,7 @@ class GameHandler extends WikiPage implements HttpHandler {
 		try ( StringPrintWriter pw = new StringPrintWriter() ) {
 			turn.setPrintWriter( pw );
 			turn.processCommand( command );
-			return newString( pw.toString() );
+			return MinXSON.newString( pw.toString() );
 		}
 	}
 	
@@ -70,7 +73,7 @@ class GameHandler extends WikiPage implements HttpHandler {
 		try ( StringPrintWriter pw = new StringPrintWriter() ) {
 			turn.setPrintWriter( pw );
 			turn.reportOnLocation();
-			return newString( pw.toString() );
+			return MinXSON.newString( pw.toString() );
 		}
 	}
 	
@@ -79,11 +82,11 @@ class GameHandler extends WikiPage implements HttpHandler {
 		final Avatar avatar = world.getAvatar();
 		final Turn turn = new Turn( avatar );
 		
-		environment.put( "version", newString( Main.getVersion() ) );
+		environment.put( "version", MinXSON.newString( Main.getVersion() ) );
 		environment.put( "welcome", this.welcome( turn ) );
 		environment.put( "response", null );
 		environment.put( "aboutLocation", null );
-		environment.put( "active", newBoolean( true ) );
+		environment.put( "active", MinXSON.newBoolean( true ) );
 		environment.put( "image", null );
 		
 		try {
@@ -105,7 +108,7 @@ class GameHandler extends WikiPage implements HttpHandler {
 
 		if ( this.world.isActive() ) {
 			environment.put( "aboutLocation", this.reportOnLocation( turn ) );
-			environment.put( "image", newString( avatar.getLocation().getImage() ) );
+			environment.put( "image", MinXSON.newString( avatar.getLocation().getImage() ) );
 		}
 		
 		new XHTMLRenderTemplate( pw, environment ).render( 

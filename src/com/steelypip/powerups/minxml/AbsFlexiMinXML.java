@@ -50,6 +50,11 @@ public abstract class AbsFlexiMinXML extends AbsMinXML {
 	public void setName( final @NonNull String name ) {
 		this.name = name.intern();
 	}
+	
+	@Override
+	public boolean isEmptyAttributes() {
+		return this.attributes == null || this.attributes.size() == 0;
+	}
 
 	@Override
 	public Map< String, String > asMap() {

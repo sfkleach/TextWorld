@@ -1,4 +1,4 @@
-package com.steelypip.textworld.main;
+package com.steelypip.textworld.main.web;
 
 import java.io.File;
 import java.io.FileInputStream;

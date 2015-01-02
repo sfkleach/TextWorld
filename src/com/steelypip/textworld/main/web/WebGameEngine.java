@@ -1,4 +1,4 @@
-package com.steelypip.textworld.main;
+package com.steelypip.textworld.main.web;
 
 import java.awt.Desktop;
 import java.io.IOException;
@@ -6,18 +6,22 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import org.eclipse.jdt.annotation.NonNull;
-
 import com.steelypip.powerups.alert.Alert;
+import com.steelypip.textworld.main.GameEngine;
+import com.steelypip.textworld.main.Options;
+import com.steelypip.textworld.main.World;
 import com.sun.net.httpserver.HttpServer;
 
 public class WebGameEngine extends GameEngine {
 	
 	public final static int port = 8002;
 
-	public WebGameEngine( @NonNull World world, boolean debugging ) {
-		super( world, debugging );
-		// TODO Auto-generated constructor stub
+	public WebGameEngine( World world, Options options   ) {
+		super( world, options );
+	}
+	
+	String initialURL() {
+		return String.format( "http://localhost:%s/%s", port, this.options.isEditing() ? "edit/home" : "textworld" );
 	}
 
 	public void run() {
@@ -38,7 +42,7 @@ public class WebGameEngine extends GameEngine {
 		server.start();
 		
 		try {
-			Desktop.getDesktop().browse( new URI( "http://localhost:" + port + "/textworld" ) );
+			Desktop.getDesktop().browse( new URI( this.initialURL() ) );
 		} catch ( IOException | URISyntaxException e ) {
 			throw new Alert( "Cannot open the default web browser" );
 		}

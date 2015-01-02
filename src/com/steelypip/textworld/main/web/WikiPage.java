@@ -1,4 +1,4 @@
-package com.steelypip.textworld.main;
+package com.steelypip.textworld.main.web;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -12,8 +12,6 @@ import java.util.Scanner;
 import java.util.TreeMap;
 
 import com.steelypip.powerups.alert.Alert;
-import com.steelypip.powerups.json.JSONKeywords;
-import com.steelypip.powerups.minxml.FlexiMinXML;
 import com.steelypip.powerups.minxml.MinXML;
 import com.steelypip.powerups.minxson.MinXSONParser;
 import com.sun.net.httpserver.HttpExchange;
@@ -89,24 +87,16 @@ public abstract class WikiPage implements HttpHandler {
 		}		
 	}
 
-	public MinXML fetchTemplate( final String page_name ) {
-		final Reader reader = new InputStreamReader( this.getClass().getResourceAsStream( page_name ) );
-		final MinXML template = new MinXSONParser( reader, 'E' ).read();
-		return template;
+	public static MinXML fetchTemplate( final String page_name ) {
+		try {
+			final Reader reader = new InputStreamReader( WikiPage.class.getResourceAsStream( page_name ) );
+			final MinXML template = new MinXSONParser( reader, 'E', 'F', 'I' ).read();
+			return template;
+		} catch ( Alert alert ){
+			alert.culprit( "Page name", page_name );
+			throw alert;
+		}
 	}
 
-	protected MinXML newString( final String text ) {
-		final MinXML minx = new FlexiMinXML( JSONKeywords.KEYS.CONSTANT );
-		minx.putAttribute( JSONKeywords.KEYS.CONSTANT_TYPE, JSONKeywords.KEYS.STRING );
-		minx.putAttribute( JSONKeywords.KEYS.CONSTANT_VALUE, text );
-		return minx;
-	}
-
-	protected MinXML newBoolean( final boolean value ) {
-		final MinXML minx = new FlexiMinXML( JSONKeywords.KEYS.CONSTANT );
-		minx.putAttribute( JSONKeywords.KEYS.CONSTANT_TYPE, JSONKeywords.KEYS.BOOLEAN );
-		minx.putAttribute( JSONKeywords.KEYS.CONSTANT_VALUE, JSONKeywords.KEYS.BOOLEAN_TRUE );
-		return minx;
-	}
 
 }
