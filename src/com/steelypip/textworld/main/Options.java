@@ -1,5 +1,7 @@
 package com.steelypip.textworld.main;
 
+import java.io.File;
+
 public interface Options {
 	
 	boolean isDebugging();
@@ -9,5 +11,7 @@ public interface Options {
 	boolean isEditing();
 	
 	ReadLine getInStream();
+
+	File getGameFolder();
 
 }

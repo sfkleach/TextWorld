@@ -36,7 +36,7 @@ public class WebGameEngine extends GameEngine {
 			throw new Alert( "Cannot bind to port" ).culprit( "Port", port );
 		}
 		server.createContext( "/textworld", new GameHandler( server, this ) );
-		server.createContext( "/edit", new EditHandler( this ) );
+		server.createContext( "/edit", new WikiEditorHandler( options ) );
 		server.createContext( "/static", new StaticHandler() );
 		server.setExecutor( null ); // creates a default executor
 		server.start();

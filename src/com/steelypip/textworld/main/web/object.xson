@@ -6,6 +6,12 @@
 		</title>
 	</head>
 	<body>
-		<p>Object Page</p>
+		<h1> "Object Page but we can change it" </h1>
+		<p> "file: ", file </p>
+		<ul>
+			<for var="item" in="properties">
+				<li> item[0], ",", item[1] </li>
+			</for>
+		</ul>
 	</body>
 </html>

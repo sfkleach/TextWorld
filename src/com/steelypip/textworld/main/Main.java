@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -38,7 +40,7 @@ public class Main extends StdCmdLineProcessor implements Options {
 	private boolean gamemaster = false;
 	private boolean editing = false; 
 	private ReadLine input = () -> System.console().readLine( "> " );
-	private LinkedList< File > files = new LinkedList<>();
+	private File folder = null;
 	
 	static Logger logger = Logger.getLogger( "com.steelypip.textworld" );
 	
@@ -69,6 +71,10 @@ public class Main extends StdCmdLineProcessor implements Options {
 	public boolean isEditing() {
 		return editing;
 	}
+	
+	public File getGameFolder() {
+		return this.folder;
+	}
 
 	void run( String[] args ) {
 		this.processCmdLineArgs( args );
@@ -96,7 +102,7 @@ public class Main extends StdCmdLineProcessor implements Options {
 	public @NonNull World newWorld() {
 		final WorldFactory w = new WorldFactory();
 		w.addBuiltIns();
-		this.files.forEach( ( File f ) -> w.load( f ) );
+		w.load(  this.folder );
 		World world = w.newWorld();
 		world.getAvatar().setGamemaster( this.gamemaster );
 		return world;
@@ -136,7 +142,15 @@ public class Main extends StdCmdLineProcessor implements Options {
 
 	@Override
 	public void processRest( CmdArgs rest ) {
-		rest.processFileArgs( ( File x ) -> this.files.add( x ) );
+		if ( rest.hasNext() ) {
+			this.folder = new File( rest.next() );
+			if ( rest.hasNext() ) {
+				throw new Alert( "Too many game folders" );
+			}
+		} else {
+			throw new Alert( "No game folder" );
+		}
+
 	}
 	
 	@SuppressWarnings("resource")

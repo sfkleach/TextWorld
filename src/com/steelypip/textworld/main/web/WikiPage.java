@@ -8,10 +8,14 @@ import java.net.URLDecoder;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.TreeMap;
 
+import org.eclipse.jdt.annotation.NonNull;
+
 import com.steelypip.powerups.alert.Alert;
+import com.steelypip.powerups.common.EmptyMap;
 import com.steelypip.powerups.minxml.MinXML;
 import com.steelypip.powerups.minxson.MinXSONParser;
 import com.sun.net.httpserver.HttpExchange;
@@ -28,7 +32,7 @@ public abstract class WikiPage implements HttpHandler {
 	}
 	
 	public Map< String, List< String > > convertGETData( final String query ) {
-		if ( query == null ) return null;
+		if ( query == null ) return new EmptyMap< String, List< String > >();
 		final Map< String, List< String > > form_data = new TreeMap<>();
 		for ( String binding : query.split( "&" ) ) {
 			final int n = binding.indexOf( '=' );
@@ -76,21 +80,23 @@ public abstract class WikiPage implements HttpHandler {
 	
 
 
-	public Map< String, List< String > > unpackRequestFields( HttpExchange http_exchange ) {
+	public Parameters unpackRequestFields( HttpExchange http_exchange ) {
 		switch ( http_exchange.getRequestMethod() ) {
 		case GET:
-			return convertGETData( http_exchange.getRequestURI().getRawQuery() );
+			return new Parameters( convertGETData( http_exchange.getRequestURI().getRawQuery() ) );
 		case POST:
-			return convertPOSTData( http_exchange.getRequestBody() );
+			return new Parameters( convertPOSTData( http_exchange.getRequestBody() ) );
 		default:
 			return null;
 		}		
 	}
 
-	public static MinXML fetchTemplate( final String page_name ) {
+	
+	public static @NonNull MinXML fetchTemplate( final String page_name ) {
 		try {
 			final Reader reader = new InputStreamReader( WikiPage.class.getResourceAsStream( page_name ) );
-			final MinXML template = new MinXSONParser( reader, 'E', 'F', 'I' ).read();
+			@SuppressWarnings("null")
+			final @NonNull MinXML template = Objects.requireNonNull( new MinXSONParser( reader, 'E', 'F', 'I' ).read() );
 			return template;
 		} catch ( Alert alert ){
 			alert.culprit( "Page name", page_name );

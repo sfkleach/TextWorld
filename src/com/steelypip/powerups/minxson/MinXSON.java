@@ -23,11 +23,27 @@ public interface MinXSON {
 	}
 
 	public static @NonNull MinXML newTuple( String... keys ) {
-		final MinXML minx = new FlexiMinXML( "tuple" );
+		final MinXML minx = new FlexiMinXML( JSONKeywords.KEYS.TUPLE );
 		for ( String key : keys ) {
 			minx.add( newString( key ) );
 		}
 		return minx;
+	}
+
+	public static @NonNull MinXML newTuple( @NonNull MinXML ... data ) {
+		final MinXML minx = new FlexiMinXML( JSONKeywords.KEYS.TUPLE );
+		for ( @NonNull MinXML k : data ) {
+			minx.add( k );
+		}
+		return minx;		
+	}
+
+	public static @NonNull MinXML newArray( @NonNull MinXML ... data ) {
+		final MinXML minx = new FlexiMinXML( JSONKeywords.KEYS.ARRAY );
+		for ( @NonNull MinXML k : data ) {
+			minx.add( k );
+		}
+		return minx;			
 	}
 
 }

@@ -127,27 +127,31 @@ class GameHandler extends WikiPage implements HttpHandler {
 
 	@Override
 	public void handle( HttpExchange http_exchange ) throws IOException {
-//		this.testDecodePOST( http_exchange );
-		http_exchange.sendResponseHeaders( 200, 0 );
-		try ( final PrintWriter pw = new PrintWriter( new OutputStreamWriter( http_exchange.getResponseBody() ) ) ) {
-			try {
-				this.executeCommand( this.findCommand( http_exchange ), pw );
-			} catch ( Exception e ) {
-				System.err.println( "RUNTIME ERROR!" );
-				e.printStackTrace();
+		try {
+			http_exchange.sendResponseHeaders( 200, 0 );
+			try ( final PrintWriter pw = new PrintWriter( new OutputStreamWriter( http_exchange.getResponseBody() ) ) ) {
+				try {
+					this.executeCommand( this.findCommand( http_exchange ), pw );
+				} catch ( Exception e ) {
+					System.err.println( "RUNTIME ERROR!" );
+					e.printStackTrace();
+				}
 			}
-		}
-		if ( !this.world.isActive() ) {
-			final Timer timer = new Timer();
-			timer.schedule( 
-				new TimerTask() { 
-					public void run() { 
-						GameHandler.this.http_server.stop( 0 ); 
-						timer.cancel();
-					} 
-				}, 
-				1000 
-			);
+			if ( !this.world.isActive() ) {
+				final Timer timer = new Timer();
+				timer.schedule( 
+					new TimerTask() { 
+						public void run() { 
+							GameHandler.this.http_server.stop( 0 ); 
+							timer.cancel();
+						} 
+					}, 
+					1000 
+				);
+			}
+		} catch ( Throwable t ) {
+			new Alert( t ).report();
+			throw t;
 		}
 	}
 	

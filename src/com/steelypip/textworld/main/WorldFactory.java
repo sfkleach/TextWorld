@@ -47,7 +47,7 @@ public class WorldFactory {
 	final private @NonNull World the_world = new World();
 	final private Map< String, GameObject > name_space = the_world.getNameSpace();
 
-	final private static FileFilter filter = ( File pathname ) -> pathname.exists() && ( pathname.isDirectory() || pathname.getName().matches( "[^=.]*=[^=.]*\\.[^=.]*$" ) ); 
+	final public static FileFilter FILTER = ( File pathname ) -> pathname.exists() && ( pathname.isDirectory() || pathname.getName().matches( "[^=.]*=[^=.]*\\.[^=.]*$" ) ); 
 	
 	
 	public void addBuiltIns() {
@@ -68,7 +68,7 @@ public class WorldFactory {
 		this.the_world.setName( top_level_folder.getName() );
 		if ( top_level_folder.isDirectory() ) {
 			final List< Initialisation > initialisations = new ArrayList<>();
-			for ( File f : top_level_folder.listFiles( filter ) ) {
+			for ( File f : top_level_folder.listFiles( FILTER ) ) {
 				if ( f == null ) throw Alert.internalError();
 				final @NonNull String var = getIdentifier( f );
 				GameObject game_object = this.name_space.get( var );
